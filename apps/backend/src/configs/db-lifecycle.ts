@@ -7,14 +7,14 @@ export const connectDB = async () => {
         await prisma.$connect();
         console.info("✅ Database connected successfully");
     } catch (error) {
-        console.error("⚠️ Failed to connect database\n", error);
+        console.info("⚠️  Failed to connect database\n", error);
         for (let attempt = 1; attempt <= MAX_DB_RECONNECTION_ATTEMPTS; attempt++) {
             try {
                 await prisma.$connect();
                 console.info("✅ Reconnected to database successfully");
                 return;
             } catch (error) {
-                console.error(`⚠️ Failed reconnecting to database on attempt ${attempt}\n`, error);
+                console.info(`⚠️  Failed reconnecting to database on attempt ${attempt}\n`, error);
                 if (attempt < MAX_DB_RECONNECTION_ATTEMPTS) {
                     const wait = 2 ** attempt * 1000;
                     console.info(`🔁 Retrying in ${wait / 1000}s...`);
@@ -23,7 +23,7 @@ export const connectDB = async () => {
             }
         }
 
-        console.error("❎ Failed to connect database after multiple tries");
+        console.info("❎ Failed to connect database after multiple tries");
         process.exit(1);
     }
 };
@@ -33,7 +33,7 @@ export const disconnectDB = async () => {
         await prisma.$disconnect();
         console.info("✅ Databse disconnected successfully");
     } catch (_) {
-        console.error("⚠️ Failed to disconnect database");
+        console.info("⚠️  Failed to disconnect database");
         process.exit(1);
     }
 };

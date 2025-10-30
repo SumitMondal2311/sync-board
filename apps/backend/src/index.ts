@@ -1,11 +1,12 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import express, { Express } from "express";
+import express, { Express, NextFunction, Request, Response } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
 import { connectDB, disconnectDB } from "./configs/db-lifecycle.js";
 import { env } from "./configs/env.js";
-import { errorHandlerMiddleware } from "./middlewares/error-handle.js";
+import { authRouter } from "./domains/auth/auth.route.js";
+import { APIError } from "./helpers/api-error.js";
 
 const app: Express = express();
 
@@ -16,7 +17,33 @@ app.use(cors({ credentials: true }));
 app.use(helmet());
 app.use(morgan("dev"));
 
-app.use(errorHandlerMiddleware);
+app.use((err: Error, _req: Request, _res: Response, next: NextFunction) => {
+    if ("body" in err) {
+        throw new APIError(400, {
+            message: "Request body must be valid JSON object",
+            code: "invalid_json_body",
+        });
+    }
+
+    next();
+});
+
+// api endpoints
+app.use("/api/v1/auth", authRouter);
+
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+    if (err instanceof APIError) {
+        console.info(err.message);
+        return res.status(err.statusCode).json({
+            ...err.toJSON(),
+        });
+    }
+
+    console.info(err);
+    res.status(500).json({
+        message: "Internal server error: something went wrong",
+    });
+});
 
 try {
     await connectDB();
@@ -31,7 +58,7 @@ try {
             if (shuttingDown) return;
             shuttingDown = true;
 
-            console.info(`⚠️ Received ${signal}, shutting down server...`);
+            console.info(`⚠️  Received ${signal}, shutting down server...`);
             server.close(
                 () =>
                     void (async () => {
@@ -43,16 +70,16 @@ try {
         })
     );
 } catch (error) {
-    console.error("❎ Failed to initialize the http server", error);
+    console.info("❎ Failed to initialize the http server", error);
     process.exit(1);
 }
 
 process.on("uncaughtException", (error: Error) => {
-    console.error(`❎ Uncaught Exception ${error.stack}`);
+    console.info(`❎ Uncaught Exception ${error.stack}`);
     process.exit(1);
 });
 
 process.on("unhandledRejection", (error: Error) => {
-    console.error(`❎ Unhandled Rejected ${error.stack}`);
+    console.info(`❎ Unhandled Rejected ${error.stack}`);
     process.exit(1);
 });

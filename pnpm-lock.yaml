@@ -54,6 +54,9 @@ importers:
 
   apps/backend:
     dependencies:
+      argon2:
+        specifier: ^0.44.0
+        version: 0.44.0
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
@@ -79,6 +82,12 @@ importers:
       '@repo/tsconfig':
         specifier: workspace:^
         version: link:../../packages/tsconfig
+      '@repo/types':
+        specifier: workspace:^
+        version: link:../../packages/types
+      '@repo/validation':
+        specifier: workspace:^
+        version: link:../../packages/validation
       '@types/cookie-parser':
         specifier: ^1.4.10
         version: 1.4.10(@types/express@5.0.5)
@@ -91,6 +100,9 @@ importers:
       '@types/morgan':
         specifier: ^1.9.10
         version: 1.9.10
+      chalk:
+        specifier: ^5.6.2
+        version: 5.6.2
       tsx:
         specifier: ^4.20.6
         version: 4.20.6
@@ -129,6 +141,27 @@ importers:
         version: 8.46.2(eslint@9.38.0(jiti@2.6.1))(typescript@5.9.3)
 
   packages/tsconfig: {}
+
+  packages/types:
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:^
+        version: link:../eslint-config
+      '@repo/tsconfig':
+        specifier: workspace:^
+        version: link:../tsconfig
+      '@repo/validation':
+        specifier: workspace:^
+        version: link:../validation
+
+  packages/validation:
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:^
+        version: link:../eslint-config
+      '@repo/tsconfig':
+        specifier: workspace:^
+        version: link:../tsconfig
 
 packages:
 
@@ -377,6 +410,10 @@ packages:
     resolution: {integrity: sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg==}
     engines: {node: '>= 8'}
 
+  '@phc/format@1.0.0':
+    resolution: {integrity: sha512-m7X9U6BG2+J+R1lSOdCiITLLrxm+cWlNI3HUFA92oLO77ObGNzaKdh8pMLqdZcshtkKuV84olNNXDfMc4FezBQ==}
+    engines: {node: '>=10'}
+
   '@pkgr/core@0.2.9':
     resolution: {integrity: sha512-QNqXyfVS2wm9hweSYD2O7F0G06uurj9kZ96TRQE5Y9hU7+tgdZwIkbAKc5Ocy1HxEY2kuDQa6cQ1WRs/O5LFKA==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
@@ -563,6 +600,10 @@ packages:
     resolution: {integrity: sha512-4Dj6M28JB+oAH8kFkTLUo+a2jwOFkuqb3yucU0CANcRRUbxS0cP0nZYCGjcc3BNXwRIsUVmDGgzawme7zvJHvg==}
     engines: {node: '>=12'}
 
+  argon2@0.44.0:
+    resolution: {integrity: sha512-zHPGN3S55sihSQo0dBbK0A5qpi2R31z7HZDZnry3ifOyj8bZZnpZND2gpmhnRGO1V/d555RwBqIK5W4Mrmv3ig==}
+    engines: {node: '>=16.17.0'}
+
   argparse@2.0.1:
     resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
 
@@ -614,6 +655,10 @@ packages:
   chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
     engines: {node: '>=10'}
+
+  chalk@5.6.2:
+    resolution: {integrity: sha512-7NzBL0rN6fMUW+f7A6Io4h40qQlG+xGmtMxfbnH/K7TAtt8JQWVQK+6g0UXKMeVJoyV5EkkNsErQ8pVD3bLHbA==}
+    engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
 
   chokidar@4.0.3:
     resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
@@ -1218,8 +1263,16 @@ packages:
     resolution: {integrity: sha512-8Ofs/AUQh8MaEcrlq5xOX0CQ9ypTF5dl78mjlMNfOK08fzpgTHQRQPBxcPlEtIw0yRpws+Zo/3r+5WRby7u3Gg==}
     engines: {node: '>= 0.6'}
 
+  node-addon-api@8.5.0:
+    resolution: {integrity: sha512-/bRZty2mXUIFY/xU5HLvveNHlswNJej+RnxBjOMkidWfwZzgTbPG1E3K5TOxRLOR+5hX7bSofy8yf1hZevMS8A==}
+    engines: {node: ^18 || ^20 || >= 21}
+
   node-fetch-native@1.6.7:
     resolution: {integrity: sha512-g9yhqoedzIUm0nTnTqAQvueMPVOuIY16bqgAJJC8XOOubYFNwz6IER9qs0Gq2Xd0+CecCKFjtdDTMA4u4xG06Q==}
+
+  node-gyp-build@4.8.4:
+    resolution: {integrity: sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ==}
+    hasBin: true
 
   nypm@0.6.2:
     resolution: {integrity: sha512-7eM+hpOtrKrBDCh7Ypu2lJ9Z7PNZBdi/8AT3AX8xoCj43BBVHD0hPSTEvMtkMpfs8FCqBGhxB+uToIQimA111g==}
@@ -1821,6 +1874,8 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.19.1
 
+  '@phc/format@1.0.0': {}
+
   '@pkgr/core@0.2.9': {}
 
   '@prisma/client@6.18.0(prisma@6.18.0(typescript@5.9.3))(typescript@5.9.3)':
@@ -2050,6 +2105,13 @@ snapshots:
 
   ansi-styles@6.2.3: {}
 
+  argon2@0.44.0:
+    dependencies:
+      '@phc/format': 1.0.0
+      cross-env: 10.1.0
+      node-addon-api: 8.5.0
+      node-gyp-build: 4.8.4
+
   argparse@2.0.1: {}
 
   balanced-match@1.0.2: {}
@@ -2118,6 +2180,8 @@ snapshots:
     dependencies:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
+
+  chalk@5.6.2: {}
 
   chokidar@4.0.3:
     dependencies:
@@ -2723,7 +2787,11 @@ snapshots:
 
   negotiator@1.0.0: {}
 
+  node-addon-api@8.5.0: {}
+
   node-fetch-native@1.6.7: {}
+
+  node-gyp-build@4.8.4: {}
 
   nypm@0.6.2:
     dependencies:

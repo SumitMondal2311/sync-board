@@ -1,0 +1,17 @@
+{
+    "name": "@repo/validation",
+    "private": true,
+    "type": "module",
+    "exports": {
+        ".": "./dist/index.js"
+    },
+    "scripts": {
+        "build": "tsc",
+        "check-types": "tsc --noEmit",
+        "lint": "eslint src --ext .ts"
+    },
+    "devDependencies": {
+        "@repo/eslint-config": "workspace:^",
+        "@repo/tsconfig": "workspace:^"
+    }
+}
