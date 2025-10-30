@@ -1,0 +1,48 @@
+# dependencies
+node_modules
+.pnp
+
+# env files
+.env
+.env.*
+
+# testing
+coverage
+
+# Turbo
+.turbo
+
+# Vercel
+.vercel
+
+# build outputs
+.next
+out
+build
+dist
+
+# Next.js
+next-env.d.ts
+
+# debug & logs
+*.debug
+*-debug*
+logs
+*.log
+
+# yaml, yml, toml files
+*.toml
+*.yml
+*.yaml
+
+# miscellaneous
+*.pem
+.lock
+.DS_Store
+
+# TypeScript
+*.tsbuildinfo
+
+# prisma
+generated
+migrations
