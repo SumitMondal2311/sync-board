@@ -2,15 +2,15 @@ import { NextFunction, Request, Response } from "express";
 import { APIError } from "../helpers/api-error.js";
 
 export const requireBodyMiddleware = (req: Request, _res: Response, next: NextFunction): void => {
-    const contentHeader = req.headers["content-type"];
-    if (!contentHeader) {
+    const contentType = req.headers["content-type"];
+    if (!contentType) {
         throw new APIError(400, {
             message: "Missing 'Content-Type' header",
             code: "missing_content_type",
         });
     }
 
-    if (contentHeader !== "application/json") {
+    if (contentType !== "application/json") {
         throw new APIError(400, {
             message: "Invalid 'Content-Type' header. Expected 'application/json'",
             code: "invalid_content_type",

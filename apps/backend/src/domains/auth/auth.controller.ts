@@ -8,6 +8,8 @@ import { normalizedIP } from "../../helpers/normalized-ip.js";
 import { authService } from "./auth.service.js";
 
 export const authController = {
+    // -- -- -- -- -- Sign Up Controller -- -- -- -- -- //
+
     signUp: asyncHandler(
         async (
             req: Request & {
@@ -28,6 +30,9 @@ export const authController = {
             res.status(201).json({ token });
         }
     ),
+
+    // -- -- -- -- -- Verify Sign Up Controller -- -- -- -- -- //
+
     verifySignUp: asyncHandler(
         async (
             req: Request & {
@@ -49,6 +54,38 @@ export const authController = {
                 userAgent: req.headers["user-agent"] || "unknown",
                 ...data,
                 signUpToken: req.params.token,
+            });
+
+            res.cookie("__session_id", sessionId, {
+                secure: IS_PROD,
+                httpOnly: true,
+                sameSite: "lax",
+                maxAge: SESSION_EXPIRY * 1000,
+            }).json({ success: true });
+        }
+    ),
+
+    // -- -- -- -- -- Sign In Controller -- -- -- -- -- //
+
+    signIn: asyncHandler(
+        async (
+            req: Request & {
+                body: AuthSchema;
+            },
+            res
+        ) => {
+            const { success, error, data } = authSchema.safeParse(req.body);
+            if (!success) {
+                throw new APIError(400, {
+                    message: error.issues[0].message,
+                    code: "validation_failed",
+                });
+            }
+
+            const { sessionId } = await authService.signIn({
+                ...data,
+                userAgent: req.headers["user-agent"] || "unknown",
+                ipAddress: normalizedIP(req.ip || "unknown"),
             });
 
             res.cookie("__session_id", sessionId, {

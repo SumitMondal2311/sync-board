@@ -3,6 +3,7 @@ import { hash, verify } from "argon2";
 import chalk from "chalk";
 import {
     IS_PROD,
+    MAX_ACTIVE_SESSIONS,
     MAX_VERIFICATION_CODE_ATTEMPTS,
     SESSION_EXPIRY,
     VERIFICATION_CODE_EXPIRY,
@@ -13,6 +14,8 @@ import { generateOtp } from "../../helpers/generate-otp.js";
 import { generateToken } from "../../helpers/generate-token.js";
 
 export const authService = {
+    // -- -- -- -- -- Sign Up Service -- -- -- -- -- //
+
     signUp: async ({
         emailAddress,
         password,
@@ -58,6 +61,9 @@ export const authService = {
 
         return { ...signUp };
     },
+
+    // -- -- -- -- -- Verify Sign Up Service -- -- -- -- -- //
+
     verifySignUp: async ({
         signUpToken,
         code,
@@ -153,5 +159,77 @@ export const authService = {
         });
 
         return { sessionId };
+    },
+
+    // -- -- -- -- -- Sign In Service -- -- -- -- -- //
+
+    signIn: async ({
+        emailAddress,
+        ipAddress,
+        password,
+        userAgent,
+    }: {
+        userAgent: string;
+        password: string;
+        ipAddress: string;
+        emailAddress: string;
+    }): Promise<{ sessionId: string }> => {
+        const userRecord = await prisma.user.findFirst({
+            where: { emailAddress, verified: true },
+            select: { id: true, passwordHash: true },
+        });
+
+        const dummyPasswordHash = await hash("dummy-password");
+        if (!userRecord) {
+            await verify(dummyPasswordHash, password); // for preventing timing attacks
+            throw new APIError(422, {
+                message: "Incorrect email address or password",
+                code: "invalid_credential",
+            });
+        }
+
+        if ((await verify(userRecord.passwordHash, password)) === false) {
+            throw new APIError(422, {
+                message: "Incorrect email address or password",
+                code: "invalid_credential",
+            });
+        }
+
+        const { id: userId } = userRecord;
+
+        // LRU based session deletion for reaching max limit
+        const sessionRecords = await prisma.session.findMany({
+            where: {
+                expiresAt: { gt: new Date() },
+                userId,
+            },
+            orderBy: { lastActiveAt: "asc" },
+            select: { id: true },
+        });
+
+        if (sessionRecords.length >= MAX_ACTIVE_SESSIONS) {
+            await prisma.session.deleteMany({
+                where: { id: sessionRecords[0].id },
+            });
+        }
+
+        const session = await prisma.$transaction(async (tx) => {
+            await tx.user.update({
+                where: { id: userId },
+                data: { lastSignInAt: new Date() },
+                select: { id: true },
+            });
+            return await tx.session.create({
+                data: {
+                    ipAddress,
+                    userAgent,
+                    expiresAt: addSecondsToNow(SESSION_EXPIRY),
+                    user: { connect: { id: userId } },
+                },
+                select: { id: true },
+            });
+        });
+
+        return { sessionId: session.id };
     },
 };
