@@ -18,6 +18,7 @@ config({
 
 export const env = z
     .object({
+        DATABASE_URL: z.string().startsWith("postgres://"),
         PORT: z.string().transform(Number),
     })
     .parse(process.env);

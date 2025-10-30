@@ -10,6 +10,10 @@
             "env": ["PORT", "DATABASE_URL"],
             "outputs": ["dist/**"]
         },
+        "@repo/database#build": {
+            "dependsOn": ["^build"],
+            "outputs": ["dist/**"]
+        },
         "check-types": {
             "dependsOn": ["^check-types"]
         },
