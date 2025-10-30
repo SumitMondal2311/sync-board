@@ -1,4 +1,32 @@
 {
     "$schema": "https://turborepo.com/schema.json",
-    "tasks": {}
+    "globalEnv": ["NODE_ENV"],
+    "tasks": {
+        "build": {
+            "dependsOn": ["^build"]
+        },
+        "backend#build": {
+            "dependsOn": ["^build"],
+            "env": ["PORT", "DATABASE_URL"],
+            "outputs": ["dist/**"]
+        },
+        "check-types": {
+            "dependsOn": ["^check-types"]
+        },
+        "lint": {
+            "dependsOn": ["^lint"]
+        },
+        "dev": {
+            "dependsOn": ["^dev"],
+            "cache": false
+        },
+        "start": {
+            "dependsOn": ["^start"],
+            "cache": false
+        },
+        "start:dev": {
+            "dependsOn": ["^start:dev"],
+            "cache": false
+        }
+    }
 }
