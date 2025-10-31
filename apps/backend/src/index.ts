@@ -6,6 +6,7 @@ import morgan from "morgan";
 import { connectDB, disconnectDB } from "./configs/db-lifecycle.js";
 import { env } from "./configs/env.js";
 import { authRouter } from "./domains/auth/auth.route.js";
+import { sessionRouter } from "./domains/session/session.route.js";
 import { APIError } from "./helpers/api-error.js";
 
 const app: Express = express();
@@ -30,6 +31,7 @@ app.use((err: Error, _req: Request, _res: Response, next: NextFunction) => {
 
 // api endpoints
 app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/me/sessions", sessionRouter);
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof APIError) {

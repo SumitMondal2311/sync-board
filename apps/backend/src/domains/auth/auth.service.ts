@@ -44,7 +44,7 @@ export const authService = {
         }
 
         const { rawOtp, hashedOtp } = generateOtp(6);
-        const signUp = await prisma.signUp.create({
+        const { token } = await prisma.signUp.create({
             data: {
                 expiresAt: addSecondsToNow(VERIFICATION_CODE_EXPIRY),
                 token: generateToken(16),
@@ -59,7 +59,7 @@ export const authService = {
             console.info(chalk.bgGreen(rawOtp));
         }
 
-        return { ...signUp };
+        return { token };
     },
 
     // -- -- -- -- -- Verify Sign Up Service -- -- -- -- -- //
@@ -136,12 +136,23 @@ export const authService = {
         });
 
         const { id: sessionId } = await prisma.$transaction(async (tx) => {
+            const workspace = await tx.workspace.create({
+                data: { name: "My workspace" },
+            });
             const user = await tx.user.create({
                 data: {
                     emailAddress,
                     passwordHash,
                     passwordEnabled: true,
                     verified: true,
+                    workspaceMemberships: {
+                        create: {
+                            role: "ADMIN",
+                            workspace: {
+                                connect: { id: workspace.id },
+                            },
+                        },
+                    },
                 },
                 select: { id: true },
             });
@@ -213,7 +224,7 @@ export const authService = {
             });
         }
 
-        const session = await prisma.$transaction(async (tx) => {
+        const { id: sessionId } = await prisma.$transaction(async (tx) => {
             await tx.user.update({
                 where: { id: userId },
                 data: { lastSignInAt: new Date() },
@@ -230,6 +241,6 @@ export const authService = {
             });
         });
 
-        return { sessionId: session.id };
+        return { sessionId };
     },
 };
