@@ -10,7 +10,7 @@ export const sessionService = {
         if (count <= 0) {
             throw new APIError(404, {
                 message: `No session was found with id '${sessionId}'`,
-                code: "resource_not_found",
+                code: "session_not_found",
             });
         }
     },

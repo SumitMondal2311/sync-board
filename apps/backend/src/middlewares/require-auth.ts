@@ -70,11 +70,24 @@ export const requireAuthMiddleware = asyncHandler(
             include: {
                 user: {
                     omit: { passwordHash: true },
+                    include: {
+                        workspaceMemberships: {
+                            select: { workspace: true, role: true },
+                        },
+                    },
                 },
             },
         });
 
-        req.authContext = { session: updatedSession };
+        const { user, ...restOfSession } = updatedSession;
+        const { workspaceMemberships, ...restOfUser } = user;
+
+        req.authContext = {
+            session: restOfSession,
+            user: restOfUser,
+            workspaces: workspaceMemberships.map((m) => ({ role: m.role, ...m.workspace })),
+        };
+
         next();
     }
 );

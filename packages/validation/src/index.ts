@@ -19,3 +19,7 @@ export const authSchema = z.object({
     ...passwordSchema.shape,
     ...emailAddressSchema.shape,
 });
+
+export const titleSchema = z.object({
+    title: z.string({ error: "Title required" }).nonempty("Enter title"),
+});

@@ -1,6 +1,7 @@
 import { prisma } from "@repo/database";
 import { hash, verify } from "argon2";
 import chalk from "chalk";
+import { v7 as uuidv7 } from "uuid";
 import {
     IS_PROD,
     MAX_ACTIVE_SESSIONS,
@@ -29,7 +30,7 @@ export const authService = {
 
         if (userRecord) {
             // for preventing user enumeration
-            const signUp = await prisma.signUp.create({
+            const { token } = await prisma.signUpAttempt.create({
                 data: {
                     expiresAt: addSecondsToNow(VERIFICATION_CODE_EXPIRY),
                     token: generateToken(16),
@@ -40,11 +41,11 @@ export const authService = {
                 select: { token: true },
             });
 
-            return { ...signUp };
+            return { token };
         }
 
         const { rawOtp, hashedOtp } = generateOtp(6);
-        const { token } = await prisma.signUp.create({
+        const { token } = await prisma.signUpAttempt.create({
             data: {
                 expiresAt: addSecondsToNow(VERIFICATION_CODE_EXPIRY),
                 token: generateToken(16),
@@ -75,7 +76,7 @@ export const authService = {
         code: string;
         signUpToken: string;
     }): Promise<{ sessionId: string }> => {
-        const signUpRecord = await prisma.signUp.findUnique({
+        const signUpAttemptRecord = await prisma.signUpAttempt.findUnique({
             where: { token: signUpToken },
             select: {
                 emailAddress: true,
@@ -86,38 +87,38 @@ export const authService = {
             },
         });
 
-        if (!signUpRecord) {
+        if (!signUpAttemptRecord) {
             throw new APIError(400, {
                 message: "No sign up attempt was found. Please go back and try again.",
-                code: "invalid_action",
+                code: "missing_sign_up_attempt",
             });
         }
 
-        const deleteSignUpRecord = async () => {
-            await prisma.signUp.deleteMany({
+        const deleteSignUpAttemptRecord = async () => {
+            await prisma.signUpAttempt.deleteMany({
                 where: { token: signUpToken },
             });
         };
 
-        if (new Date() >= signUpRecord.expiresAt) {
-            await deleteSignUpRecord();
+        if (new Date() >= signUpAttemptRecord.expiresAt) {
+            await deleteSignUpAttemptRecord();
             throw new APIError(410, {
                 message: "This sign up attempt has expired. Please go back and try again.",
-                code: "attempt_expired",
+                code: "sign_up_attempt_expired",
             });
         }
 
-        const { emailAddress, passwordHash, verificationCodeHash } = signUpRecord;
+        const { emailAddress, passwordHash, verificationCodeHash } = signUpAttemptRecord;
 
-        if (signUpRecord.attempts >= MAX_VERIFICATION_CODE_ATTEMPTS) {
-            await deleteSignUpRecord();
+        if (signUpAttemptRecord.attempts >= MAX_VERIFICATION_CODE_ATTEMPTS) {
+            await deleteSignUpAttemptRecord();
             throw new APIError(403, {
                 message: "Too many failed attempts. Please go back and try again.",
-                code: "attempt_failed",
+                code: "sign_up_failed",
             });
         }
 
-        await prisma.signUp.update({
+        await prisma.signUpAttempt.update({
             where: { token: signUpToken },
             data: {
                 attempts: { increment: 1 },
@@ -131,16 +132,17 @@ export const authService = {
             });
         }
 
-        await prisma.signUp.deleteMany({
+        await prisma.signUpAttempt.deleteMany({
             where: { emailAddress },
         });
 
         const { id: sessionId } = await prisma.$transaction(async (tx) => {
             const workspace = await tx.workspace.create({
-                data: { name: "My workspace" },
+                data: { id: uuidv7(), name: "My workspace" },
             });
             const user = await tx.user.create({
                 data: {
+                    id: uuidv7(),
                     emailAddress,
                     passwordHash,
                     passwordEnabled: true,
@@ -158,6 +160,7 @@ export const authService = {
             });
             return tx.session.create({
                 data: {
+                    id: uuidv7(),
                     ipAddress,
                     userAgent,
                     expiresAt: addSecondsToNow(SESSION_EXPIRY),
@@ -232,6 +235,7 @@ export const authService = {
             });
             return await tx.session.create({
                 data: {
+                    id: uuidv7(),
                     ipAddress,
                     userAgent,
                     expiresAt: addSecondsToNow(SESSION_EXPIRY),

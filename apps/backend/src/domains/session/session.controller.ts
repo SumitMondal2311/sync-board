@@ -13,9 +13,9 @@ export const sessionController = {
             },
             res
         ) => {
-            const { session } = req.authContext;
+            const { user, session } = req.authContext;
             await sessionService.delete({
-                userId: session.user.id,
+                userId: user.id,
                 sessionId: req.params.id,
             });
 

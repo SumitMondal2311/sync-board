@@ -1,7 +1,9 @@
-import { Session, User } from "@repo/database";
+import { Session, User, Workspace, WorkspaceMemberRole } from "@repo/database";
 
 export type AuthContext = {
-    session: Omit<Session, "userId"> & {
-        user: Omit<User, "passwordHash">;
-    };
+    session: Omit<Session, "userId">;
+    user: Omit<User, "passwordHash">;
+    workspaces: (Workspace & {
+        role: WorkspaceMemberRole;
+    })[];
 };
