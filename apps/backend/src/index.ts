@@ -6,9 +6,12 @@ import morgan from "morgan";
 import { connectDB, disconnectDB } from "./configs/db-lifecycle.js";
 import { env } from "./configs/env.js";
 import { authRouter } from "./domains/auth/auth.route.js";
-import { boardRouter } from "./domains/boards/board.route.js";
+import { boardRouter } from "./domains/board/board.route.js";
+import { meRouter } from "./domains/me/me.route.js";
 import { sessionRouter } from "./domains/session/session.route.js";
 import { APIError } from "./helpers/api-error.js";
+import { requireAuthMiddleware } from "./middlewares/require-auth.js";
+import { requireWorkspaceMiddleware } from "./middlewares/require-workspace.js";
 
 const app: Express = express();
 
@@ -32,8 +35,9 @@ app.use((err: Error, _req: Request, _res: Response, next: NextFunction) => {
 
 // api endpoints
 app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/me/sessions", sessionRouter);
-app.use("/api/v1/me/boards", boardRouter);
+app.use("/api/v1/me/sessions", requireAuthMiddleware, sessionRouter);
+app.use("/api/v1/me", requireAuthMiddleware, meRouter);
+app.use("/api/v1/me/boards", requireAuthMiddleware, requireWorkspaceMiddleware, boardRouter);
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof APIError) {

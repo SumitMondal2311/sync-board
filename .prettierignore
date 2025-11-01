@@ -21,9 +21,6 @@ out
 build
 dist
 
-# Next.js
-next-env.d.ts
-
 # debug & logs
 *.debug
 *-debug*

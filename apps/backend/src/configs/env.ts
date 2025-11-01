@@ -1,24 +1,12 @@
 import { config } from "dotenv";
-import { resolve } from "path";
-import { z } from "zod";
+import { cleanEnv, num, str } from "envalid";
 
-const NODE_ENV = process.env.NODE_ENV;
-config({
-    path: resolve(
-        process.cwd(),
-        NODE_ENV === "development"
-            ? ".env.development"
-            : NODE_ENV === "test"
-              ? ".env.test"
-              : NODE_ENV === "production"
-                ? ".env.production"
-                : ".env.local"
-    ),
+config();
+
+export const env = cleanEnv(process.env, {
+    NODE_ENV: str({
+        choices: ["development", "test", "production"],
+    }),
+    DATABASE_URL: str(),
+    PORT: num({ default: 4321 }),
 });
-
-export const env = z
-    .object({
-        DATABASE_URL: z.string().startsWith("postgres://"),
-        PORT: z.string().transform(Number),
-    })
-    .parse(process.env);

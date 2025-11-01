@@ -5,6 +5,32 @@ import { AuthContext } from "../../types/auth-context.js";
 import { sessionService } from "./session.service.js";
 
 export const sessionController = {
+    get: asyncHandler(
+        async (
+            req: Request & {
+                authContext: AuthContext;
+            },
+            res
+            // eslint-disable-next-line @typescript-eslint/require-await
+        ) => {
+            const { session } = req.authContext;
+            res.json({ session });
+        }
+    ),
+    getAll: asyncHandler(
+        async (
+            req: Request & {
+                authContext: AuthContext;
+            },
+            res
+        ) => {
+            const {
+                user: { id: userId },
+            } = req.authContext;
+            const { sessions } = await sessionService.getAll(userId);
+            res.json({ sessions });
+        }
+    ),
     delete: asyncHandler(
         async (
             req: Request & {

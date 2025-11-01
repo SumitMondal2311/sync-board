@@ -31,9 +31,7 @@ export const config = [
             "@typescript-eslint": tseslint.plugin,
             turbo: pluginTurbo,
         },
-        rules: {
-            "turbo/no-undeclared-env-vars": "warn",
-        },
+        rules: { "turbo/no-undeclared-env-vars": "warn" },
     },
     configPrettier,
 ];
