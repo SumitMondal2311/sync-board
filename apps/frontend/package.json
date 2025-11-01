@@ -1,0 +1,29 @@
+{
+    "name": "frontend",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "build": "next build",
+        "check-types": "tsc --noEmit",
+        "dev": "next dev",
+        "lint": "eslint src --ext .ts --ext .tsx",
+        "start": "next start",
+        "start:dev": "next start"
+    },
+    "dependencies": {
+        "next": "16.0.1",
+        "react": "19.2.0",
+        "react-dom": "19.2.0"
+    },
+    "devDependencies": {
+        "@next/eslint-plugin-next": "^16.0.1",
+        "@repo/eslint-config": "workspace:^",
+        "@repo/tsconfig": "workspace:^",
+        "@tailwindcss/postcss": "^4",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-react-hooks": "^7.0.1",
+        "tailwindcss": "^4"
+    }
+}
