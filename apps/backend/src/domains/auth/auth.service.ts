@@ -66,7 +66,7 @@ export const authService = {
     // -- -- -- -- -- Verify Sign Up Service -- -- -- -- -- //
 
     verifySignUp: async ({
-        signUpToken,
+        signUpAttemptToken,
         code,
         ipAddress,
         userAgent,
@@ -74,10 +74,10 @@ export const authService = {
         ipAddress: string;
         userAgent: string;
         code: string;
-        signUpToken: string;
+        signUpAttemptToken: string;
     }): Promise<{ sessionId: string }> => {
         const signUpAttemptRecord = await prisma.signUpAttempt.findUnique({
-            where: { token: signUpToken },
+            where: { token: signUpAttemptToken },
             select: {
                 emailAddress: true,
                 passwordHash: true,
@@ -88,20 +88,13 @@ export const authService = {
         });
 
         if (!signUpAttemptRecord) {
-            throw new APIError(400, {
+            throw new APIError(404, {
                 message: "No sign up attempt was found. Please go back and try again.",
-                code: "missing_sign_up_attempt",
+                code: "sign_up_attempt_not_found",
             });
         }
 
-        const deleteSignUpAttemptRecord = async () => {
-            await prisma.signUpAttempt.deleteMany({
-                where: { token: signUpToken },
-            });
-        };
-
         if (new Date() >= signUpAttemptRecord.expiresAt) {
-            await deleteSignUpAttemptRecord();
             throw new APIError(410, {
                 message: "This sign up attempt has expired. Please go back and try again.",
                 code: "sign_up_attempt_expired",
@@ -111,15 +104,14 @@ export const authService = {
         const { emailAddress, passwordHash, verificationCodeHash } = signUpAttemptRecord;
 
         if (signUpAttemptRecord.attempts >= MAX_VERIFICATION_CODE_ATTEMPTS) {
-            await deleteSignUpAttemptRecord();
             throw new APIError(403, {
                 message: "Too many failed attempts. Please go back and try again.",
-                code: "sign_up_failed",
+                code: "forbidden_sign_up_attempt",
             });
         }
 
         await prisma.signUpAttempt.update({
-            where: { token: signUpToken },
+            where: { token: signUpAttemptToken },
             data: {
                 attempts: { increment: 1 },
             },

@@ -1,7 +1,7 @@
 import { AuthSchema, VerificationCodeSchema } from "@repo/types";
 import { authSchema, verificationCodeSchema } from "@repo/validation";
 import { Request } from "express";
-import { IS_PROD, SESSION_EXPIRY } from "../../configs/constants.js";
+import { IS_PROD, SESSION_EXPIRY, VERIFICATION_CODE_EXPIRY } from "../../configs/constants.js";
 import { APIError } from "../../helpers/api-error.js";
 import { asyncHandler } from "../../helpers/async-handler.js";
 import { normalizedIP } from "../../helpers/normalized-ip.js";
@@ -27,7 +27,14 @@ export const authController = {
 
             const { token } = await authService.signUp(data);
 
-            res.status(201).json({ token });
+            res.status(201)
+                .cookie("__sua_token", token, {
+                    secure: IS_PROD,
+                    httpOnly: true,
+                    sameSite: "lax",
+                    maxAge: VERIFICATION_CODE_EXPIRY * 1000,
+                })
+                .json({ success: true });
         }
     ),
 
@@ -37,10 +44,18 @@ export const authController = {
         async (
             req: Request & {
                 body: VerificationCodeSchema;
-                params: { token: string };
+                cookies: { __sua_token?: string };
             },
             res
         ) => {
+            const { __sua_token } = req.cookies;
+            if (!__sua_token) {
+                throw new APIError(400, {
+                    message: "Missing sign up attempt token. Please go back and try again.",
+                    code: "missing_sign_up_attempt_token",
+                });
+            }
+
             const { success, error, data } = verificationCodeSchema.safeParse(req.body);
             if (!success) {
                 throw new APIError(400, {
@@ -53,15 +68,22 @@ export const authController = {
                 ipAddress: normalizedIP(req.ip || "unknown"),
                 userAgent: req.headers["user-agent"] || "unknown",
                 ...data,
-                signUpToken: req.params.token,
+                signUpAttemptToken: __sua_token,
             });
 
-            res.cookie("__session_id", sessionId, {
+            res.cookie("__sua_token", "", {
                 secure: IS_PROD,
                 httpOnly: true,
                 sameSite: "lax",
-                maxAge: SESSION_EXPIRY * 1000,
-            }).json({ success: true });
+                maxAge: 0,
+            })
+                .cookie("__session_id", sessionId, {
+                    secure: IS_PROD,
+                    httpOnly: true,
+                    sameSite: "lax",
+                    maxAge: SESSION_EXPIRY * 1000,
+                })
+                .json({ success: true });
         }
     ),
 

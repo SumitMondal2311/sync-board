@@ -1,9 +1,8 @@
-import { Session, User, Workspace, WorkspaceMemberRole } from "@repo/database";
+import { Session } from "@repo/database";
+import { UserAPIContext, WorkspaceAPIContext } from "@repo/types";
 
 export type AuthContext = {
     session: Omit<Session, "userId">;
-    user: Omit<User, "passwordHash">;
-    workspaces: (Workspace & {
-        role: WorkspaceMemberRole;
-    })[];
+    user: UserAPIContext;
+    workspaces: WorkspaceAPIContext[];
 };
