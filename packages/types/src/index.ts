@@ -1,4 +1,4 @@
-import { WorkspaceMemberRole } from "@repo/database";
+import { User, Workspace, WorkspaceMemberRole } from "@repo/database";
 import {
     authSchema,
     emailAddressSchema,
@@ -62,4 +62,9 @@ export const permissions: Record<WorkspaceMemberRole, Array<string>> = {
         "workspace:tasks:read",
         "workspace:activities:read",
     ],
+};
+
+export type UserAPIContext = Omit<User, "passwordHash">;
+export type WorkspaceAPIContext = Workspace & {
+    role: WorkspaceMemberRole;
 };

@@ -1,5 +1,7 @@
+import { QueryProvider } from "@/lib/providers/query-provider";
 import { Outfit, Space_Grotesk } from "next/font/google";
-import "../shared/styles/global.css";
+import { Toaster } from "@/components/ui/sonner";
+import "../styles/global.css";
 
 const spaceGrotesk = Space_Grotesk({
     variable: "--font-space-grotesk",
@@ -20,7 +22,10 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`${spaceGrotesk.variable} ${outfit.variable}`}>{children}</body>
+            <body className={`${spaceGrotesk.variable} ${outfit.variable}`}>
+                <QueryProvider>{children}</QueryProvider>
+                <Toaster />
+            </body>
         </html>
     );
 }

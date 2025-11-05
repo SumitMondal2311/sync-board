@@ -5,6 +5,11 @@
         "build": {
             "dependsOn": ["^build"]
         },
+        "frontend#build": {
+            "dependsOn": ["^build"],
+            "env": ["NEXT_PUBLIC_BASE_URL"],
+            "outputs": [".next/**", "!.next/cache/**"]
+        },
         "backend#build": {
             "dependsOn": ["^build"],
             "env": ["PORT", "DATABASE_URL"],
