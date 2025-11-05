@@ -1,7 +1,7 @@
 import { Workspace, WorkspaceMembership } from "@repo/database";
 
 export type WorkspaceContext = {
-    workspace: Omit<Workspace, "userId"> & {
+    workspace: Workspace & {
         membership: Pick<WorkspaceMembership, "role" | "createdAt">;
     };
 };

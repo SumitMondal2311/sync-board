@@ -26,8 +26,10 @@ export const boardController = {
             }
 
             const {
-                authContext: { user },
                 workspaceContext: { workspace },
+                authContext: {
+                    session: { user },
+                },
             } = req;
 
             await boardService.create({

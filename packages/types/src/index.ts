@@ -1,4 +1,4 @@
-import { User, Workspace, WorkspaceMemberRole } from "@repo/database";
+import { Session, User, Workspace, WorkspaceMemberRole, WorkspaceMembership } from "@repo/database";
 import {
     authSchema,
     emailAddressSchema,
@@ -64,7 +64,10 @@ export const permissions: Record<WorkspaceMemberRole, Array<string>> = {
     ],
 };
 
-export type UserAPIContext = Omit<User, "passwordHash">;
-export type WorkspaceAPIContext = Workspace & {
-    role: WorkspaceMemberRole;
+export type SessionAPIContext = Omit<Session, "userId"> & {
+    user: Omit<User, "passwordHash"> & {
+        workspaces: (Workspace & {
+            membership: Pick<WorkspaceMembership, "role" | "createdAt">;
+        })[];
+    };
 };

@@ -12,7 +12,7 @@ export const requireWorkspaceMiddleware = asyncHandler(
             authContext: AuthContext;
             workspaceContext: WorkspaceContext;
         },
-        res,
+        _,
         next
     ) => {
         const workspaceId = req.headers["x-workspace-id"];
@@ -23,7 +23,9 @@ export const requireWorkspaceMiddleware = asyncHandler(
             });
         }
 
-        const { user } = req.authContext;
+        const {
+            session: { user },
+        } = req.authContext;
 
         const workspaceMembershipRecord = await prisma.workspaceMembership.findUnique({
             where: {

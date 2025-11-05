@@ -72,7 +72,7 @@ export const requireAuthMiddleware = asyncHandler(
                     omit: { passwordHash: true },
                     include: {
                         workspaceMemberships: {
-                            select: { workspace: true, role: true },
+                            select: { workspace: true, role: true, createdAt: true },
                         },
                     },
                 },
@@ -83,9 +83,19 @@ export const requireAuthMiddleware = asyncHandler(
         const { workspaceMemberships, ...restOfUser } = user;
 
         req.authContext = {
-            session: restOfSession,
-            user: restOfUser,
-            workspaces: workspaceMemberships.map((m) => ({ role: m.role, ...m.workspace })),
+            session: {
+                ...restOfSession,
+                user: {
+                    ...restOfUser,
+                    workspaces: workspaceMemberships.map((membership) => ({
+                        ...membership.workspace,
+                        membership: {
+                            role: membership.role,
+                            createdAt: membership.createdAt,
+                        },
+                    })),
+                },
+            },
         };
 
         next();

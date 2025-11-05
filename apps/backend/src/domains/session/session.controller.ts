@@ -1,4 +1,5 @@
-import { Request } from "express";
+import { SessionAPIContext } from "@repo/types";
+import { Request, Response } from "express";
 import { IS_PROD } from "../../configs/constants.js";
 import { asyncHandler } from "../../helpers/async-handler.js";
 import { AuthContext } from "../../types/auth-context.js";
@@ -10,7 +11,7 @@ export const sessionController = {
             req: Request & {
                 authContext: AuthContext;
             },
-            res
+            res: Response<{ session: SessionAPIContext }>
             // eslint-disable-next-line @typescript-eslint/require-await
         ) => {
             const { session } = req.authContext;
@@ -25,9 +26,9 @@ export const sessionController = {
             res
         ) => {
             const {
-                user: { id: userId },
+                session: { user },
             } = req.authContext;
-            const { sessions } = await sessionService.getAll(userId);
+            const { sessions } = await sessionService.getAll(user.id);
             res.json({ sessions });
         }
     ),
@@ -39,9 +40,9 @@ export const sessionController = {
             },
             res
         ) => {
-            const { user, session } = req.authContext;
+            const { session } = req.authContext;
             await sessionService.delete({
-                userId: user.id,
+                userId: session.user.id,
                 sessionId: req.params.id,
             });
 
