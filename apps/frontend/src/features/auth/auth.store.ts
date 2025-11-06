@@ -1,10 +1,10 @@
-import { UserAPIContext } from "@repo/types";
+import { SessionAPIContext } from "@repo/types";
 import { create } from "zustand";
 
 export const useAuthStore = create<{
-    user: UserAPIContext | null;
-    setUser: (user: UserAPIContext) => void;
+    session: SessionAPIContext | null;
+    setSession: (session: SessionAPIContext) => void;
 }>((set) => ({
-    user: null,
-    setUser: (user) => set({ user }),
+    session: null,
+    setSession: (session) => set({ session }),
 }));

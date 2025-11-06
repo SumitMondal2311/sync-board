@@ -8,7 +8,7 @@ export default function proxy(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
 
     if (!sessionCookie && PROTECTED_ROUTES.some((route) => pathname.startsWith(route))) {
-        return NextResponse.redirect(new URL("/sign-up", request.url));
+        return NextResponse.redirect(new URL("/sign-in", request.url));
     }
 
     if (sessionCookie && AUTH_ROUTES.some((route) => pathname.startsWith(route))) {

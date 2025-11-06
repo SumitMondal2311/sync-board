@@ -36,11 +36,7 @@ export function SignUpVerificationForm({
     const { mutate, isSuccess } = useMutation<void, AxiosError<ApiError>, VerificationCodeSchema>({
         mutationFn: (data) => apiClient.post("/api/v1/auth/sign-up/verify", data),
         onError: (error) => {
-            if (error.response) {
-                toast.error(error.response?.data.message);
-            } else {
-                toast.error("Unknown error");
-            }
+            toast.error(error.response?.data.message || "Unknown error");
         },
         onSuccess: () => {
             form.reset({ code: "" });
@@ -75,58 +71,61 @@ export function SignUpVerificationForm({
     }, [code, form, onSubmit]);
 
     return (
-        <FieldSet>
-            <Field>
-                {isSuccess ? (
-                    <div className="absolute inset-0 z-50 flex items-center justify-center rounded-md bg-white">
-                        Authorizing...
-                    </div>
-                ) : null}
-            </Field>
-            <FieldContent className="gap-0 text-center">
-                <FieldLegend className="font-mono text-2xl!">Verify your email</FieldLegend>
-                <FieldDescription>
-                    If you don&apos;t have an account yet, we&apos;ve send a code to
-                    yourname@example.com. Enter it below.
-                </FieldDescription>
-            </FieldContent>
-            <FieldGroup>
-                <Controller
-                    name="code"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                        <Field>
-                            <InputOTP maxLength={6} pattern={REGEXP_ONLY_DIGITS} {...field}>
-                                <InputOTPGroup className="w-full justify-evenly">
-                                    {Array.from({ length: 6 }, (_, idx) => (
-                                        <InputOTPSlot
-                                            index={idx}
-                                            key={idx}
-                                            className="size-10 rounded! border! shadow-none!"
-                                        />
-                                    ))}
-                                </InputOTPGroup>
-                            </InputOTP>
-                            {fieldState.invalid && (
-                                <FieldError errors={[fieldState.error]} className="text-center" />
-                            )}
-                        </Field>
-                    )}
-                />
-                <span
-                    onClick={() => setSignUpState("sign-up")}
-                    className="text-muted-foreground hover:text-foreground absolute top-4 left-4 flex cursor-pointer items-center space-x-2 text-sm transition-colors hover:underline"
-                >
-                    <MoveLeft size={16} />
-                    <span>Back</span>
-                </span>
-            </FieldGroup>
-            <div className="space-x-2 self-center text-sm">
-                <span>Didn&apos;t receive a code?</span>
-                <Link href="#" className="text-blue-600 hover:underline">
-                    Resend
-                </Link>
-            </div>
-        </FieldSet>
+        <div className="pt-4">
+            {isSuccess ? (
+                <div className="absolute inset-0 z-50 flex items-center justify-center rounded-md bg-white">
+                    Authorizing...
+                </div>
+            ) : null}
+            <span
+                onClick={() => setSignUpState("sign-up")}
+                className="text-muted-foreground hover:text-foreground absolute top-4 left-4 flex cursor-pointer items-center space-x-2 text-sm transition-colors hover:underline"
+            >
+                <MoveLeft size={16} />
+                <span>Back</span>
+            </span>
+            <FieldSet>
+                <FieldContent className="gap-0 text-center">
+                    <FieldLegend className="font-mono text-2xl!">Verify your email</FieldLegend>
+                    <FieldDescription>
+                        If you don&apos;t have an account yet, we&apos;ve send a code to
+                        yourname@example.com. Enter it below.
+                    </FieldDescription>
+                </FieldContent>
+                <FieldGroup>
+                    <Controller
+                        name="code"
+                        control={form.control}
+                        render={({ field, fieldState }) => (
+                            <Field>
+                                <InputOTP maxLength={6} pattern={REGEXP_ONLY_DIGITS} {...field}>
+                                    <InputOTPGroup className="w-full justify-evenly">
+                                        {Array.from({ length: 6 }, (_, idx) => (
+                                            <InputOTPSlot
+                                                index={idx}
+                                                key={idx}
+                                                className="size-10 rounded! border! shadow-none!"
+                                            />
+                                        ))}
+                                    </InputOTPGroup>
+                                </InputOTP>
+                                {fieldState.invalid && (
+                                    <FieldError
+                                        errors={[fieldState.error]}
+                                        className="text-center"
+                                    />
+                                )}
+                            </Field>
+                        )}
+                    />
+                </FieldGroup>
+                <div className="space-x-2 self-center text-sm">
+                    <span>Didn&apos;t receive a code?</span>
+                    <Link href="#" className="text-blue-600 hover:underline">
+                        Resend
+                    </Link>
+                </div>
+            </FieldSet>
+        </div>
     );
 }

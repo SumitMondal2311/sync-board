@@ -1,6 +1,6 @@
+import { Toaster } from "@/components/ui/sonner";
 import { QueryProvider } from "@/lib/providers/query-provider";
 import { Outfit, Space_Grotesk } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
 import "../styles/global.css";
 
 const spaceGrotesk = Space_Grotesk({

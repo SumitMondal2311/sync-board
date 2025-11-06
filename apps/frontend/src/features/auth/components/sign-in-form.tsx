@@ -21,14 +21,22 @@ import { AxiosError } from "axios";
 import { Loader2 } from "lucide-react";
 import { ApiError } from "next/dist/server/api-utils";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { SignUpState } from "./sign-up-controller";
+import { toast } from "sonner";
 
-export function SignUpForm({ setSignUpState }: { setSignUpState: (state: SignUpState) => void }) {
-    const { mutate, isPending } = useMutation<{ token: string }, AxiosError<ApiError>, AuthSchema>({
-        mutationFn: (data) => apiClient.post("/api/v1/auth/sign-up", data),
-        onSuccess: () => setSignUpState("sign-up-verification"),
+export function SignInForm() {
+    const router = useRouter();
+
+    const { mutate, isPending, isSuccess } = useMutation<
+        { token: string },
+        AxiosError<ApiError>,
+        AuthSchema
+    >({
+        mutationFn: (data) => apiClient.post("/api/v1/auth/sign-in", data),
+        onSuccess: () => router.push("/dashboard"),
+        onError: (error) => toast.error(error.response?.data.message || "unknown error"),
     });
 
     const form = useForm<AuthSchema>({
@@ -49,11 +57,16 @@ export function SignUpForm({ setSignUpState }: { setSignUpState: (state: SignUpS
 
     return (
         <form onSubmit={(e) => void form.handleSubmit(onSubmit)(e)}>
+            {isSuccess ? (
+                <div className="absolute inset-0 z-50 flex items-center justify-center rounded-md bg-white">
+                    Authorizing...
+                </div>
+            ) : null}
             <FieldSet>
                 <FieldContent className="gap-0 text-center">
-                    <FieldLegend className="font-mono text-2xl!">Create an account</FieldLegend>
+                    <FieldLegend className="font-mono text-2xl!">Sign In</FieldLegend>
                     <FieldDescription>
-                        Welcome! Please fill in the credentials below to get started
+                        Welocome back! Please fill in the credentials below to continue
                     </FieldDescription>
                 </FieldContent>
                 <FieldGroup>
@@ -100,9 +113,9 @@ export function SignUpForm({ setSignUpState }: { setSignUpState: (state: SignUpS
                     </Button>
                 </FieldGroup>
                 <div className="space-x-2 self-center text-sm">
-                    <span>Already have an account?</span>
-                    <Link href="/sign-in" className="text-blue-600 hover:underline">
-                        Sign In
+                    <span>Don&apos;t have an account?</span>
+                    <Link href="/sign-up" className="text-blue-600 hover:underline">
+                        Sign Up
                     </Link>
                 </div>
             </FieldSet>
