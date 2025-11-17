@@ -1,10 +1,9 @@
 import { Toaster } from "@/components/ui/sonner";
-import { QueryProvider } from "@/lib/providers/query-provider";
-import { Outfit, Space_Grotesk } from "next/font/google";
+import { Geist_Mono, Outfit } from "next/font/google";
 import "../styles/global.css";
 
-const spaceGrotesk = Space_Grotesk({
-    variable: "--font-space-grotesk",
+const geistMono = Geist_Mono({
+    variable: "--font-geist-mono",
     display: "swap",
     subsets: ["latin"],
 });
@@ -22,8 +21,8 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`${spaceGrotesk.variable} ${outfit.variable}`}>
-                <QueryProvider>{children}</QueryProvider>
+            <body className={`${geistMono.variable} ${outfit.variable}`}>
+                {children}
                 <Toaster />
             </body>
         </html>

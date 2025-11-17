@@ -1,8 +1,8 @@
-import { SignUpController } from "@/features/auth/components/sign-up-controller";
+import { SignUpController } from "@/components/sign-up-controller";
 
-export default function SignUpPage() {
+export default function Page() {
     return (
-        <div className="flex h-screen items-center justify-center px-4">
+        <div className="flex h-screen items-center justify-center px-6">
             <SignUpController />
         </div>
     );

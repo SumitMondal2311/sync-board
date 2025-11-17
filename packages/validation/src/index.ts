@@ -1,14 +1,11 @@
 import z from "zod";
 
 export const emailAddressSchema = z.object({
-    emailAddress: z.string().nonempty("Enter email address").email("Enter a valid email address"),
+    emailAddress: z.string().email("Enter a valid email address"),
 });
 
 export const passwordSchema = z.object({
-    password: z
-        .string()
-        .nonempty("Enter password")
-        .min(12, "Password must contain at least 12 characters"),
+    password: z.string().min(12, "Password must contain at least 12 characters"),
 });
 
 export const authSchema = z.object({
@@ -17,9 +14,9 @@ export const authSchema = z.object({
 });
 
 export const verificationCodeSchema = z.object({
-    code: z.string().nonempty("Enter code"),
+    code: z.string().nonempty("Code required"),
 });
 
 export const titleSchema = z.object({
-    title: z.string().nonempty("Enter title"),
+    title: z.string().nonempty("Title required"),
 });
