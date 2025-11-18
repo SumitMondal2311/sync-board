@@ -1,17 +1,17 @@
 import { Session, User, Workspace, WorkspaceMemberRole, WorkspaceMembership } from "@repo/database";
 import {
     authSchema,
-    emailAddressSchema,
+    emailSchema,
     passwordSchema,
     titleSchema,
     verificationCodeSchema,
 } from "@repo/validation";
 import { z } from "zod";
 
-export type EmailAddressSchema = z.infer<typeof emailAddressSchema>;
-export type TitleSchema = z.infer<typeof titleSchema>;
 export type AuthSchema = z.infer<typeof authSchema>;
+export type EmailSchema = z.infer<typeof emailSchema>;
 export type PasswordSchema = z.infer<typeof passwordSchema>;
+export type TitleSchema = z.infer<typeof titleSchema>;
 export type VerificationCodeSchema = z.infer<typeof verificationCodeSchema>;
 
 export const permissions: Record<WorkspaceMemberRole, Array<string>> = {

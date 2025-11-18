@@ -24,7 +24,7 @@ export const SignUpForm = ({
     const form = useForm<AuthSchema>({
         resolver: zodResolver(authSchema),
         defaultValues: {
-            emailAddress: "",
+            email: "",
             password: "",
         },
         mode: "onTouched",
@@ -32,7 +32,7 @@ export const SignUpForm = ({
 
     const email = useWatch({
         control: form.control,
-        name: "emailAddress",
+        name: "email",
     });
 
     const onSubmit = useCallback(async () => {
@@ -51,31 +51,31 @@ export const SignUpForm = ({
                 <div className="bg-background/50 absolute inset-0 rounded-md" />
             ) : null}
             <CardHeader className="gap-0">
-                <CardTitle className="font-mono text-2xl">Get started</CardTitle>
+                <CardTitle className="font-mono">Get started</CardTitle>
                 <CardDescription>
                     Please fill in the credentials below to create an account
                 </CardDescription>
             </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-3">
+                <Button variant="outline">Google</Button>
+                <Button variant="outline">GitHub</Button>
+            </CardContent>
+            <Separator />
             <CardContent>
-                <div className="flex flex-col gap-3 pb-6">
-                    <Button variant="outline">Continue with Google</Button>
-                    <Button variant="outline">Continue with GitHub</Button>
-                </div>
-                <Separator />
-                <form onSubmit={(e) => void form.handleSubmit(onSubmit)(e)} className="pt-6">
+                <form onSubmit={(e) => void form.handleSubmit(onSubmit)(e)}>
                     <FieldGroup>
                         <Controller
-                            name="emailAddress"
+                            name="email"
                             control={form.control}
                             render={({ field, fieldState }) => (
                                 <Field className="gap-2">
-                                    <FieldLabel htmlFor="email-address" className="w-max!">
-                                        Email Address
+                                    <FieldLabel htmlFor="email" className="w-max!">
+                                        Email
                                     </FieldLabel>
                                     <Input
                                         tabIndex={0}
                                         type="email"
-                                        id="email-address"
+                                        id="email"
                                         required
                                         placeholder="yourname@example.com"
                                         {...field}

@@ -20,7 +20,7 @@ export const SignInForm = () => {
     const form = useForm<AuthSchema>({
         resolver: zodResolver(authSchema),
         defaultValues: {
-            emailAddress: "",
+            email: "",
             password: "",
         },
         mode: "onTouched",
@@ -41,29 +41,29 @@ export const SignInForm = () => {
                 <div className="bg-background/50 absolute inset-0 rounded-md" />
             ) : null}
             <CardHeader className="gap-0">
-                <CardTitle className="font-mono text-2xl">Welcome back</CardTitle>
+                <CardTitle className="font-mono">Welcome back</CardTitle>
                 <CardDescription>
                     Please fill in the credentials below to sign in to your account
                 </CardDescription>
             </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-3">
+                <Button variant="outline">Google</Button>
+                <Button variant="outline">GitHub</Button>
+            </CardContent>
+            <Separator />
             <CardContent>
-                <div className="flex flex-col gap-3 pb-6">
-                    <Button variant="outline">Continue with Google</Button>
-                    <Button variant="outline">Continue with GitHub</Button>
-                </div>
-                <Separator />
-                <form onSubmit={(e) => void form.handleSubmit(onSubmit)(e)} className="pt-6">
+                <form onSubmit={(e) => void form.handleSubmit(onSubmit)(e)}>
                     <FieldGroup>
                         <Controller
-                            name="emailAddress"
+                            name="email"
                             control={form.control}
                             render={({ field, fieldState }) => (
                                 <Field className="gap-2">
-                                    <FieldLabel htmlFor="email-address">Email Address</FieldLabel>
+                                    <FieldLabel htmlFor="email">Email</FieldLabel>
                                     <Input
                                         tabIndex={1}
                                         type="email"
-                                        id="email-address"
+                                        id="email"
                                         required
                                         placeholder="yourname@example.com"
                                         {...field}

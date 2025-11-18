@@ -1,7 +1,7 @@
 import z from "zod";
 
-export const emailAddressSchema = z.object({
-    emailAddress: z.string().email("Enter a valid email address"),
+export const emailSchema = z.object({
+    email: z.string().email("Enter a valid email address"),
 });
 
 export const passwordSchema = z.object({
@@ -9,8 +9,8 @@ export const passwordSchema = z.object({
 });
 
 export const authSchema = z.object({
+    ...emailSchema.shape,
     ...passwordSchema.shape,
-    ...emailAddressSchema.shape,
 });
 
 export const verificationCodeSchema = z.object({

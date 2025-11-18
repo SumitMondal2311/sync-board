@@ -18,14 +18,14 @@ export const authService = {
     // -- -- -- -- -- Sign Up Service -- -- -- -- -- //
 
     signUp: async ({
-        emailAddress,
         password,
+        email,
     }: {
+        email: string;
         password: string;
-        emailAddress: string;
     }): Promise<{ token: string }> => {
         const userRecord = await prisma.user.findFirst({
-            where: { emailAddress, verified: true },
+            where: { email, verified: true },
         });
 
         if (userRecord) {
@@ -34,7 +34,7 @@ export const authService = {
                 data: {
                     expiresAt: addSecondsToNow(VERIFICATION_CODE_EXPIRY),
                     token: generateToken(16),
-                    emailAddress,
+                    email,
                     passwordHash: await hash(password),
                     verificationCodeHash: await hash(generateToken(128)), // almost never guesable code
                 },
@@ -49,7 +49,7 @@ export const authService = {
             data: {
                 expiresAt: addSecondsToNow(VERIFICATION_CODE_EXPIRY),
                 token: generateToken(16),
-                emailAddress,
+                email,
                 verificationCodeHash: await hashedOtp,
                 passwordHash: await hash(password),
             },
@@ -79,7 +79,7 @@ export const authService = {
         const signUpAttemptRecord = await prisma.signUpAttempt.findUnique({
             where: { token: signUpAttemptToken },
             select: {
-                emailAddress: true,
+                email: true,
                 passwordHash: true,
                 attempts: true,
                 verificationCodeHash: true,
@@ -101,7 +101,7 @@ export const authService = {
             });
         }
 
-        const { emailAddress, passwordHash, verificationCodeHash } = signUpAttemptRecord;
+        const { email, passwordHash, verificationCodeHash } = signUpAttemptRecord;
 
         if (signUpAttemptRecord.attempts >= MAX_VERIFICATION_CODE_ATTEMPTS) {
             throw new APIError(403, {
@@ -125,7 +125,7 @@ export const authService = {
         }
 
         await prisma.signUpAttempt.deleteMany({
-            where: { emailAddress },
+            where: { email },
         });
 
         const { id: sessionId } = await prisma.$transaction(async (tx) => {
@@ -135,7 +135,7 @@ export const authService = {
             const user = await tx.user.create({
                 data: {
                     id: uuidv7(),
-                    emailAddress,
+                    email,
                     passwordHash,
                     passwordEnabled: true,
                     verified: true,
@@ -170,18 +170,18 @@ export const authService = {
     // -- -- -- -- -- Sign In Service -- -- -- -- -- //
 
     signIn: async ({
-        emailAddress,
         ipAddress,
-        password,
         userAgent,
+        email,
+        password,
     }: {
-        userAgent: string;
         password: string;
+        email: string;
         ipAddress: string;
-        emailAddress: string;
+        userAgent: string;
     }): Promise<{ sessionId: string }> => {
         const userRecord = await prisma.user.findFirst({
-            where: { emailAddress, verified: true },
+            where: { email, verified: true },
             select: { id: true, passwordHash: true },
         });
 
@@ -189,14 +189,14 @@ export const authService = {
         if (!userRecord) {
             await verify(dummyPasswordHash, password); // for preventing timing attacks
             throw new APIError(422, {
-                message: "Incorrect email address or password",
+                message: "Incorrect email or password",
                 code: "invalid_credential",
             });
         }
 
         if ((await verify(userRecord.passwordHash, password)) === false) {
             throw new APIError(422, {
-                message: "Incorrect email address or password",
+                message: "Incorrect email or password",
                 code: "invalid_credential",
             });
         }

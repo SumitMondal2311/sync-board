@@ -56,6 +56,7 @@ export const EmailVerificationForm = ({
             ) : null}
             <Button
                 disabled={form.formState.isSubmitting}
+                type="button"
                 variant="link"
                 onClick={() => setReadyForVerification(false)}
                 className="absolute -top-10 left-0"
@@ -64,7 +65,7 @@ export const EmailVerificationForm = ({
                 Back
             </Button>
             <CardHeader className="gap-0">
-                <CardTitle className="font-mono text-2xl">Verify your email</CardTitle>
+                <CardTitle className="font-mono">Verify your email</CardTitle>
                 <CardDescription>
                     If you don&apos;t have an account yet, we&apos;ve sent a code to {email}. Enter
                     it below.
@@ -108,7 +109,7 @@ export const EmailVerificationForm = ({
                             </Button>
                             <FieldDescription className="flex items-center justify-center gap-2">
                                 Didn&apos;t receive a code?
-                                <Button type="button" variant="link">
+                                <Button type="button" variant="link" className="p-0">
                                     Resend
                                 </Button>
                             </FieldDescription>

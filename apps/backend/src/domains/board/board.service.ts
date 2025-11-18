@@ -6,15 +6,15 @@ import { APIError } from "../../helpers/api-error.js";
 export const boardService = {
     create: async ({
         workspaceId,
+        email,
         title,
         role,
         userId,
-        emailAddress,
     }: {
-        emailAddress: string;
         userId: string;
         role: WorkspaceMemberRole;
         title: string;
+        email: string;
         workspaceId: string;
     }): Promise<void> => {
         if (!permissions[role].includes("workspace:boards:create")) {
@@ -40,7 +40,7 @@ export const boardService = {
             });
             await tx.workspaceActivity.create({
                 data: {
-                    message: `${emailAddress} created board "${title}"`,
+                    message: `${email} created board "${title}"`,
                     id: uuidv7(),
                     actor: {
                         connect: { id: userId },

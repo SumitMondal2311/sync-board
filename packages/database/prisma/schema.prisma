@@ -10,7 +10,7 @@ datasource db {
 
 model SignUpAttempt {
     attempts             Int      @default(0)
-    emailAddress         String
+    email                String
     passwordHash         String
     token                String   @unique
     verificationCodeHash String
@@ -22,7 +22,7 @@ model User {
     id              String    @id
     firstName       String?
     lastName        String?
-    emailAddress    String    @unique
+    email           String    @unique
     passwordHash    String
     verified        Boolean   @default(false)
     passwordEnabled Boolean
@@ -33,11 +33,8 @@ model User {
     sessions             Session[]
     workspaceMemberships WorkspaceMembership[]
     workspaceActivities  WorkspaceActivity[]
-    workspaceInvitations WorkspaceInvitation[]
     boards               Board[]
-    lists                List[]
-    asAssignorTasks      Task[]                @relation(name: "assignor")
-    asAssigneeTasks      Task[]                @relation(name: "assignee")
+    tasks                Task[]
     notifications        Notification[]
 }
 
@@ -52,6 +49,8 @@ model Session {
     updatedAt    DateTime @updatedAt
 
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
 }
 
 model Workspace {
@@ -93,19 +92,24 @@ model WorkspaceActivity {
 
     actor     User      @relation(fields: [actorId], references: [id], onDelete: Cascade)
     workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+    @@index([workspaceId])
+    @@index([actorId])
+    @@index([workspaceId, actorId])
 }
 
 model WorkspaceInvitation {
-    userId      String
     workspaceId String
+    email       String
     role        WorkspaceMemberRole
+    token       String              @unique
     createdAt   DateTime            @default(now())
     updatedAt   DateTime            @updatedAt
+    expiresAt   DateTime
 
-    user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
     workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
-    @@id([userId, workspaceId])
+    @@unique([email, workspaceId])
 }
 
 model Board {
@@ -120,36 +124,42 @@ model Board {
 
     creator   User      @relation(fields: [creatorId], references: [id], onDelete: Cascade)
     workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+    @@index([workspaceId])
+    @@index([creatorId])
+    @@index([workspaceId, creatorId])
 }
 
 model List {
     id        String   @id
-    boardId   String
-    creatorId String
+    position  Float
     title     String
+    boardId   String
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
     tasks Task[]
 
-    creator User  @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-    board   Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+    board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+    @@index([boardId])
 }
 
 model Task {
-    id          String   @id
+    id          String    @id
     listId      String
-    assignorId  String
     assigneeId  String?
     title       String
+    position    Float
     description String?
-    dueDate     DateTime
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+    dueDate     DateTime?
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
 
-    list     List  @relation(fields: [listId], references: [id])
-    assignor User  @relation(name: "assignor", fields: [assignorId], references: [id], onDelete: Cascade)
-    assignee User? @relation(name: "assignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+    assignee User? @relation(fields: [assigneeId], references: [id], onDelete: Cascade)
+    list     List  @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+    @@index([listId])
 }
 
 model Notification {
@@ -161,4 +171,6 @@ model Notification {
     updatedAt DateTime @updatedAt
 
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
 }
