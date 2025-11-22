@@ -6,15 +6,15 @@ import { verificationCodeSchema } from "@repo/validation";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Loader2, MoveLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect } from "react";
+import * as React from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
-import { Button } from "./ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Field, FieldDescription, FieldError, FieldGroup } from "./ui/field";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "./ui/input-otp";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldDescription, FieldError, FieldGroup } from "@/components/ui/field";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
-export const EmailVerificationForm = ({
+export const SignUpVerificationForm = ({
     setReadyForVerification,
     email,
 }: {
@@ -36,18 +36,14 @@ export const EmailVerificationForm = ({
         name: "code",
     });
 
-    useEffect(() => {
+    React.useEffect(() => {
         form.setFocus("code");
     }, [form]);
 
-    const onSubmit = useCallback(async () => {
-        await new Promise(() =>
-            setTimeout(() => {
-                router.push("/dashboard");
-                form.reset();
-            }, 2000)
-        );
-    }, [router, form]);
+    const onSubmit = async () => {
+        await new Promise((r) => setTimeout(r, 1000));
+        router.push("/dashboard/boards");
+    };
 
     return (
         <Card className="relative w-full max-w-sm">
@@ -56,7 +52,6 @@ export const EmailVerificationForm = ({
             ) : null}
             <Button
                 disabled={form.formState.isSubmitting}
-                type="button"
                 variant="link"
                 onClick={() => setReadyForVerification(false)}
                 className="absolute -top-10 left-0"
@@ -65,7 +60,7 @@ export const EmailVerificationForm = ({
                 Back
             </Button>
             <CardHeader className="gap-0">
-                <CardTitle className="font-mono">Verify your email</CardTitle>
+                <CardTitle className="font-mono text-2xl">Verify your email</CardTitle>
                 <CardDescription>
                     If you don&apos;t have an account yet, we&apos;ve sent a code to {email}. Enter
                     it below.
@@ -109,7 +104,7 @@ export const EmailVerificationForm = ({
                             </Button>
                             <FieldDescription className="flex items-center justify-center gap-2">
                                 Didn&apos;t receive a code?
-                                <Button type="button" variant="link" className="p-0">
+                                <Button variant="link" className="h-max! p-0!">
                                     Resend
                                 </Button>
                             </FieldDescription>

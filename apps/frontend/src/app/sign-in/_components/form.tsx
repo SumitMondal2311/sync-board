@@ -5,22 +5,20 @@ import { AuthSchema } from "@repo/types";
 import { authSchema } from "@repo/validation";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useCallback } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { useRouter } from "next/navigation";
+import { Controller, useForm } from "react-hook-form";
 
-import { Button } from "./ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "./ui/field";
-import { Input } from "./ui/input";
-import { Separator } from "./ui/separator";
+import { SocialAuthButtonGroup } from "@/components/social-auth-button-group";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 
-export const SignUpForm = ({
-    setReadyForVerification,
-    setEmail,
-}: {
-    setEmail: (_: string) => void;
-    setReadyForVerification: (_: boolean) => void;
-}) => {
+export const SignInForm = () => {
+    const router = useRouter();
+
     const form = useForm<AuthSchema>({
         resolver: zodResolver(authSchema),
         defaultValues: {
@@ -30,20 +28,10 @@ export const SignUpForm = ({
         mode: "onTouched",
     });
 
-    const email = useWatch({
-        control: form.control,
-        name: "email",
-    });
-
-    const onSubmit = useCallback(async () => {
-        await new Promise(() =>
-            setTimeout(() => {
-                setEmail(email);
-                setReadyForVerification(true);
-                form.reset();
-            }, 2000)
-        );
-    }, [email, setEmail, setReadyForVerification, form]);
+    const onSubmit = async () => {
+        await new Promise((r) => setTimeout(r, 1000));
+        router.push("/dashboard/boards");
+    };
 
     return (
         <Card className="w-full max-w-sm">
@@ -51,17 +39,14 @@ export const SignUpForm = ({
                 <div className="bg-background/50 absolute inset-0 rounded-md" />
             ) : null}
             <CardHeader className="gap-0">
-                <CardTitle className="font-mono">Get started</CardTitle>
+                <CardTitle className="font-mono text-2xl">Welcome back</CardTitle>
                 <CardDescription>
-                    Please fill in the credentials below to create an account
+                    Please fill in the credentials below to sign in to your account
                 </CardDescription>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-3">
-                <Button variant="outline">Google</Button>
-                <Button variant="outline">GitHub</Button>
-            </CardContent>
-            <Separator />
             <CardContent>
+                <SocialAuthButtonGroup />
+                <Separator className="my-6" />
                 <form onSubmit={(e) => void form.handleSubmit(onSubmit)(e)}>
                     <FieldGroup>
                         <Controller
@@ -69,11 +54,9 @@ export const SignUpForm = ({
                             control={form.control}
                             render={({ field, fieldState }) => (
                                 <Field className="gap-2">
-                                    <FieldLabel htmlFor="email" className="w-max!">
-                                        Email
-                                    </FieldLabel>
+                                    <FieldLabel htmlFor="email">Email</FieldLabel>
                                     <Input
-                                        tabIndex={0}
+                                        tabIndex={1}
                                         type="email"
                                         id="email"
                                         required
@@ -91,11 +74,20 @@ export const SignUpForm = ({
                             control={form.control}
                             render={({ field, fieldState }) => (
                                 <Field className="gap-2">
-                                    <FieldLabel htmlFor="password" className="w-max!">
-                                        Password
-                                    </FieldLabel>
+                                    <div className="flex items-center justify-between">
+                                        <FieldLabel htmlFor="password">Password</FieldLabel>
+                                        <Link
+                                            href="#"
+                                            className={cn(
+                                                buttonVariants({ variant: "link" }),
+                                                "h-max! p-0! font-normal!"
+                                            )}
+                                        >
+                                            Forgot password?
+                                        </Link>
+                                    </div>
                                     <Input
-                                        tabIndex={1}
+                                        tabIndex={2}
                                         type="password"
                                         id="password"
                                         required
@@ -116,8 +108,13 @@ export const SignUpForm = ({
                                 )}
                             </Button>
                             <FieldDescription className="flex items-center justify-center gap-2">
-                                Already have an account?
-                                <Link href="/sign-in">Sign in</Link>
+                                Don&apos;t have an account?
+                                <Link
+                                    href="/sign-up"
+                                    className="text-primary! no-underline! hover:underline!"
+                                >
+                                    Sign up
+                                </Link>
                             </FieldDescription>
                         </Field>
                     </FieldGroup>

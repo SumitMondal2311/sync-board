@@ -1,5 +1,7 @@
-import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "next-themes";
 import { Geist_Mono, Outfit } from "next/font/google";
+
+import { Toaster } from "@/components/ui/sonner";
 import "../styles/global.css";
 
 const geistMono = Geist_Mono({
@@ -14,16 +16,23 @@ const outfit = Outfit({
     subsets: ["latin"],
 });
 
-export default function RootLayout({
+export default function Layout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning>
             <body className={`${geistMono.variable} ${outfit.variable}`}>
-                {children}
-                <Toaster />
+                <ThemeProvider
+                    attribute="class"
+                    enableSystem
+                    themes={["dark", "light", "system"]}
+                    defaultTheme="system"
+                >
+                    {children}
+                    <Toaster />
+                </ThemeProvider>
             </body>
         </html>
     );

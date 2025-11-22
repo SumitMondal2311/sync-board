@@ -1,11 +1,9 @@
-import { WorkspaceSelector } from "@/components/workspace-selector";
+import { WorkspaceSelector } from "@/app/select-workspace/_components/workspace-selector";
 
-const SelectWorkspacePage = () => {
+export default function Page() {
     return (
         <main className="flex h-screen items-center justify-center px-6">
             <WorkspaceSelector />
         </main>
     );
-};
-
-export default SelectWorkspacePage;
+}
