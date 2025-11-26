@@ -8,7 +8,7 @@ import { normalizedIP } from "../../helpers/normalized-ip.js";
 import { authService } from "./auth.service.js";
 
 export const authController = {
-    // -- -- -- -- -- Sign Up Controller -- -- -- -- -- //
+    // ----- Sign Up Controller ----- //
 
     signUp: asyncHandler(
         async (
@@ -38,7 +38,7 @@ export const authController = {
         }
     ),
 
-    // -- -- -- -- -- Verify Sign Up Controller -- -- -- -- -- //
+    // -----Verify Sign Up Controller ----- //
 
     verifySignUp: asyncHandler(
         async (
@@ -87,7 +87,7 @@ export const authController = {
         }
     ),
 
-    // -- -- -- -- -- Sign In Controller -- -- -- -- -- //
+    // ----- Sign In Controller ----- //
 
     signIn: asyncHandler(
         async (

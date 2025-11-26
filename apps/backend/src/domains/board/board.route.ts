@@ -4,3 +4,4 @@ import { boardController } from "./board.controller.js";
 
 export const boardRouter: Router = Router();
 boardRouter.post("/", requireBodyMiddleware, boardController.create);
+boardRouter.get("/", boardController.getList);

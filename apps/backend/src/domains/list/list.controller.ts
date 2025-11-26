@@ -6,30 +6,26 @@ import { RequireAuthRequest, RequireWorkspaceRequest } from "../../types/custom-
 import { listService } from "./list.service.js";
 
 export const listController = {
+    // ----- Create List Controller ----- //
+
     create: asyncHandler(
         async (
             req: RequireAuthRequest &
                 RequireWorkspaceRequest & {
-                    query: { board_id?: string };
                     body: TitleSchema;
+                    query: { board_id?: string };
                 },
             res
         ) => {
-            const {
-                workspacePolicy: { canCreateLists },
-                activeWorkspaceId,
-                session: {
-                    user: { email, id: userId },
-                },
-            } = req;
-            if (!canCreateLists()) {
+            const { workspacePolicy, query, body, session, activeWorkspaceId } = req;
+            if (!workspacePolicy.canCreateLists()) {
                 throw new APIError(403, {
                     message: "Current user is not allowed to perform this action.",
                     code: "forbidden_list_creation",
                 });
             }
 
-            const { board_id } = req.query;
+            const { board_id } = query;
             if (!board_id) {
                 throw new APIError(400, {
                     message: "Missing 'board_id' param.",
@@ -37,7 +33,7 @@ export const listController = {
                 });
             }
 
-            const { success, error, data } = titleSchema.safeParse(req.body);
+            const { success, error, data } = titleSchema.safeParse(body);
             if (!success) {
                 throw new APIError(400, {
                     message: error.issues[0].message,
@@ -45,6 +41,7 @@ export const listController = {
                 });
             }
 
+            const { id: userId, email } = session.user;
             await listService.create({
                 userId,
                 email,
@@ -54,6 +51,31 @@ export const listController = {
             });
 
             res.status(201).json({ success: true });
+        }
+    ),
+
+    // ----- Get Lists Controller ----- //
+
+    getList: asyncHandler(
+        async (
+            req: RequireWorkspaceRequest & {
+                query: { board_id?: string };
+            },
+            res
+        ) => {
+            const { board_id } = req.query;
+            if (!board_id) {
+                throw new APIError(400, {
+                    message: "Missing 'board_id' param.",
+                    code: "missing_query_param",
+                });
+            }
+
+            const { lists } = await listService.getList({
+                boardId: board_id,
+                workspaceId: req.activeWorkspaceId,
+            });
+            res.status(200).json({ lists });
         }
     ),
 };

@@ -7,6 +7,8 @@ import { RequireAuthRequest } from "../../types/custom-request.js";
 import { sessionService } from "./session.service.js";
 
 export const sessionController = {
+    // ----- Get Session Controller ----- //
+
     get: asyncHandler(
         async (
             req: RequireAuthRequest,
@@ -16,10 +18,16 @@ export const sessionController = {
             res.json({ session: req.session });
         }
     ),
-    getAll: asyncHandler(async (req: RequireAuthRequest, res) => {
-        const { sessions } = await sessionService.getAll(req.session.user.id);
+
+    // ----- Get All Session Controller ----- //
+
+    getActiveList: asyncHandler(async (req: RequireAuthRequest, res) => {
+        const { sessions } = await sessionService.getActiveList(req.session.user.id);
         res.json({ sessions });
     }),
+
+    // ----- Delete Session Controller ----- //
+
     delete: asyncHandler(
         async (
             req: RequireAuthRequest & {

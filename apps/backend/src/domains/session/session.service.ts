@@ -2,7 +2,9 @@ import { prisma, Session } from "@repo/database";
 import { APIError } from "../../helpers/api-error.js";
 
 export const sessionService = {
-    getAll: async (
+    // ----- Get Active Sessions List Service ----- //
+
+    getActiveList: async (
         userId: string
     ): Promise<{
         sessions: Pick<Session, "userAgent" | "ipAddress" | "id" | "lastActiveAt">[];
@@ -22,6 +24,9 @@ export const sessionService = {
 
         return { sessions: sessionRecords };
     },
+
+    // ----- Delete Session Service ----- //
+
     delete: async ({ sessionId, userId }: { userId: string; sessionId: string }): Promise<void> => {
         const { count } = await prisma.session.deleteMany({
             where: { id: sessionId, userId },

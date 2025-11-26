@@ -1,7 +1,10 @@
 import { prisma } from "@repo/database";
+import { GetAllBoardsAPISuccessResponse } from "@repo/types";
 import { v7 as uuidv7 } from "uuid";
 
 export const boardService = {
+    // ----- Create Board Service ----- //
+
     create: async ({
         title,
         userId,
@@ -40,5 +43,20 @@ export const boardService = {
                 },
             });
         });
+    },
+
+    // ----- Get Boards Service ----- //
+
+    getList: async (
+        workspaceId: string
+    ): Promise<{
+        boards: GetAllBoardsAPISuccessResponse;
+    }> => {
+        const boardRecords = await prisma.board.findMany({
+            where: { workspaceId },
+            select: { id: true, title: true },
+        });
+
+        return { boards: boardRecords };
     },
 };

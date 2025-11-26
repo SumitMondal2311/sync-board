@@ -1,4 +1,14 @@
-import { Session, User, Workspace, WorkspaceMemberRole, WorkspaceMembership } from "@repo/database";
+import {
+    Board,
+    Comment,
+    List,
+    Session,
+    Task,
+    User,
+    Workspace,
+    WorkspaceMemberRole,
+    WorkspaceMembership,
+} from "@repo/database";
 import {
     authSchema,
     emailSchema,
@@ -132,3 +142,21 @@ export type UserAPIContext = Omit<User, "passwordHash">;
 export type WorkspaceAPIContext = Workspace & {
     membership: Pick<WorkspaceMembership, "role" | "createdAt">;
 };
+
+export type GetAllBoardsAPISuccessResponse = Array<Pick<Board, "id" | "title">>;
+export type GetTaskAPISuccessResponse = Array<
+    Pick<Task, "title" | "id" | "position" | "dueDate"> & {
+        assignee: Pick<User, "firstName" | "lastName" | "id" | "email"> | null;
+        comments: Array<Pick<Comment, "userId" | "id" | "text" | "createdAt">>;
+    }
+>;
+export type GetAllListsAPISuccessResponse = Array<
+    Pick<List, "title" | "id" | "position"> & {
+        tasks: Array<
+            Pick<Task, "title" | "id" | "position" | "dueDate"> & {
+                commentsCount: number;
+                assignee: Pick<User, "firstName" | "lastName" | "id" | "email"> | null;
+            }
+        >;
+    }
+>;

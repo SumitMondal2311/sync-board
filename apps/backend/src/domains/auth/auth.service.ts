@@ -15,7 +15,7 @@ import { generateOtp } from "../../helpers/generate-otp.js";
 import { generateToken } from "../../helpers/generate-token.js";
 
 export const authService = {
-    // -- -- -- -- -- Sign Up Service -- -- -- -- -- //
+    // ----- Sign Up Service ----- //
 
     signUp: async ({
         password,
@@ -63,7 +63,7 @@ export const authService = {
         return { token };
     },
 
-    // -- -- -- -- -- Verify Sign Up Service -- -- -- -- -- //
+    // ----- Verify Sign Up Service ----- //
 
     verifySignUp: async ({
         signUpAttemptToken,
@@ -167,7 +167,7 @@ export const authService = {
         return { sessionId };
     },
 
-    // -- -- -- -- -- Sign In Service -- -- -- -- -- //
+    // ----- Sign In Service ----- //
 
     signIn: async ({
         ipAddress,
