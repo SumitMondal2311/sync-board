@@ -3,28 +3,37 @@ import { titleSchema } from "@repo/validation";
 import { APIError } from "../../helpers/api-error.js";
 import { asyncHandler } from "../../helpers/async-handler.js";
 import { RequireAuthRequest, RequireWorkspaceRequest } from "../../types/custom-request.js";
-import { boardService } from "./board.service.js";
+import { listService } from "./list.service.js";
 
-export const boardController = {
+export const listController = {
     create: asyncHandler(
         async (
             req: RequireAuthRequest &
                 RequireWorkspaceRequest & {
+                    query: { board_id?: string };
                     body: TitleSchema;
                 },
             res
         ) => {
             const {
-                workspacePolicy: { canCreateBoards },
+                workspacePolicy: { canCreateLists },
                 activeWorkspaceId,
                 session: {
                     user: { email, id: userId },
                 },
             } = req;
-            if (!canCreateBoards()) {
+            if (!canCreateLists()) {
                 throw new APIError(403, {
                     message: "Current user is not allowed to perform this action.",
-                    code: "forbidden_board_creation",
+                    code: "forbidden_list_creation",
+                });
+            }
+
+            const { board_id } = req.query;
+            if (!board_id) {
+                throw new APIError(400, {
+                    message: "Missing 'board_id' param.",
+                    code: "missing_query_param",
                 });
             }
 
@@ -36,9 +45,10 @@ export const boardController = {
                 });
             }
 
-            await boardService.create({
+            await listService.create({
                 userId,
                 email,
+                boardId: board_id,
                 workspaceId: activeWorkspaceId,
                 ...data,
             });

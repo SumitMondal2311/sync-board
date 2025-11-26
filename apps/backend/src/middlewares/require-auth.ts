@@ -1,16 +1,14 @@
 import { prisma } from "@repo/database";
-import { Request } from "express";
 import { IS_PROD, SESSION_EXPIRY } from "../configs/constants.js";
 import { addSecondsToNow } from "../helpers/add-seconds-to-now.js";
 import { APIError } from "../helpers/api-error.js";
 import { asyncHandler } from "../helpers/async-handler.js";
-import { AuthContext } from "../types/auth-context.js";
+import { RequireAuthRequest } from "../types/custom-request.js";
 
 export const requireAuthMiddleware = asyncHandler(
     async (
-        req: Request & {
+        req: RequireAuthRequest & {
             cookies: { __session_id?: string };
-            authContext: AuthContext;
         },
         res,
         next
@@ -82,19 +80,17 @@ export const requireAuthMiddleware = asyncHandler(
         const { user, ...restOfSession } = updatedSession;
         const { workspaceMemberships, ...restOfUser } = user;
 
-        req.authContext = {
-            session: {
-                ...restOfSession,
-                user: {
-                    ...restOfUser,
-                    workspaces: workspaceMemberships.map((membership) => ({
-                        ...membership.workspace,
-                        membership: {
-                            role: membership.role,
-                            createdAt: membership.createdAt,
-                        },
-                    })),
-                },
+        req.session = {
+            ...restOfSession,
+            user: {
+                ...restOfUser,
+                workspaces: workspaceMemberships.map((membership) => ({
+                    ...membership.workspace,
+                    membership: {
+                        role: membership.role,
+                        createdAt: membership.createdAt,
+                    },
+                })),
             },
         };
 

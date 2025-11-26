@@ -6,7 +6,7 @@ export const requireBodyMiddleware = (req: Request, _res: Response, next: NextFu
     if (!contentType) {
         throw new APIError(400, {
             message: "Missing 'Content-Type' header.",
-            code: "missing_request_header",
+            code: "missing_header",
         });
     }
 

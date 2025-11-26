@@ -1,52 +1,46 @@
 import { SessionAPIContext } from "@repo/types";
-import { Request, Response } from "express";
+import { Response } from "express";
 import { IS_PROD } from "../../configs/constants.js";
+import { APIError } from "../../helpers/api-error.js";
 import { asyncHandler } from "../../helpers/async-handler.js";
-import { AuthContext } from "../../types/auth-context.js";
+import { RequireAuthRequest } from "../../types/custom-request.js";
 import { sessionService } from "./session.service.js";
 
 export const sessionController = {
     get: asyncHandler(
         async (
-            req: Request & {
-                authContext: AuthContext;
-            },
+            req: RequireAuthRequest,
             res: Response<{ session: SessionAPIContext }>
             // eslint-disable-next-line @typescript-eslint/require-await
         ) => {
-            const { session } = req.authContext;
-            res.json({ session });
+            res.json({ session: req.session });
         }
     ),
-    getAll: asyncHandler(
-        async (
-            req: Request & {
-                authContext: AuthContext;
-            },
-            res
-        ) => {
-            const {
-                session: { user },
-            } = req.authContext;
-            const { sessions } = await sessionService.getAll(user.id);
-            res.json({ sessions });
-        }
-    ),
+    getAll: asyncHandler(async (req: RequireAuthRequest, res) => {
+        const { sessions } = await sessionService.getAll(req.session.user.id);
+        res.json({ sessions });
+    }),
     delete: asyncHandler(
         async (
-            req: Request & {
-                authContext: AuthContext;
-                params: { id: string };
+            req: RequireAuthRequest & {
+                params: { id?: string };
             },
             res
         ) => {
-            const { session } = req.authContext;
+            const { id: sessionId } = req.params;
+            if (!sessionId) {
+                throw new APIError(400, {
+                    message: "Missing 'id: <session_id>' param.",
+                    code: "missing_path_param",
+                });
+            }
+
             await sessionService.delete({
-                userId: session.user.id,
-                sessionId: req.params.id,
+                userId: req.session.user.id,
+                sessionId,
             });
 
-            if (req.params.id === session.id) {
+            if (sessionId === req.session.id) {
                 return res
                     .clearCookie("__session_id", {
                         secure: IS_PROD,

@@ -3,6 +3,7 @@ import {
     authSchema,
     emailSchema,
     passwordSchema,
+    taskSchema,
     titleSchema,
     verificationCodeSchema,
 } from "@repo/validation";
@@ -11,63 +12,123 @@ import { z } from "zod";
 export type AuthSchema = z.infer<typeof authSchema>;
 export type EmailSchema = z.infer<typeof emailSchema>;
 export type PasswordSchema = z.infer<typeof passwordSchema>;
+export type TaskSchema = z.infer<typeof taskSchema>;
 export type TitleSchema = z.infer<typeof titleSchema>;
 export type VerificationCodeSchema = z.infer<typeof verificationCodeSchema>;
 
-export const permissions: Record<WorkspaceMemberRole, Array<string>> = {
-    ADMIN: [
-        "workspace:manage",
-        "workspace:read",
-        "workspace:memberships:manage",
-        "workspace:memberships:read",
-        "workspace:delete",
-        "workspace:boards:create",
-        "workspace:boards:manage",
-        "workspace:boards:read",
-        "workspace:boards:delete",
-        "workspace:lists:create",
-        "workspace:lists:manage",
-        "workspace:lists:read",
-        "workspace:lists:delete",
-        "workspace:tasks:create",
-        "workspace:tasks:manage",
-        "workspace:tasks:read",
-        "workspace:tasks:assign",
-        "workspace:tasks:delete",
-        "workspace:billing:manage",
-        "workspace:billing:read",
-        "workspace:activities:read",
-    ],
-    MEMBER: [
-        "workspace:read",
-        "workspace:memberships:read",
-        "workspace:boards:create",
-        "workspace:boards:manage",
-        "workspace:boards:read",
-        "workspace:lists:create",
-        "workspace:lists:read",
-        "workspace:lists:manage",
-        "workspace:tasks:create",
-        "workspace:tasks:read",
-        "workspace:tasks:manage",
-        "workspace:tasks:assign",
-        "workspace:billing:read",
-        "workspace:activities:read",
-    ],
-    GUEST: [
-        "workspace:read",
-        "workspace:memberships:read",
-        "workspace:boards:read",
-        "workspace:lists:read",
-        "workspace:tasks:read",
-        "workspace:activities:read",
-    ],
-};
+export class WorkspacePolicy {
+    private strictMode: boolean;
+    private userId: string;
+    private isAdminOrManager: boolean;
+    private isMember: boolean;
+    constructor({
+        strictMode,
+        role,
+        userId,
+    }: {
+        strictMode: boolean;
+        role: WorkspaceMemberRole;
+        userId: string;
+    }) {
+        this.strictMode = strictMode;
+        this.userId = userId;
+        this.isAdminOrManager = role === "ADMIN" || role === "MANAGER";
+        this.isMember = role === "MEMBER";
+    }
 
-export type SessionAPIContext = Omit<Session, "userId"> & {
-    user: Omit<User, "passwordHash"> & {
-        workspaces: (Workspace & {
-            membership: Pick<WorkspaceMembership, "role" | "createdAt">;
-        })[];
+    canInviteMembers = () => this.isAdminOrManager;
+    canChangeMembersRole = () => this.isAdminOrManager;
+    canRemoveMembers = () => this.isAdminOrManager;
+
+    canCreateBoards = () => {
+        if (this.isAdminOrManager) return true;
+        if (this.isMember && !this.strictMode) return true;
+        return false;
     };
+
+    canEditBoards = (creatorId: string) => {
+        if (this.isAdminOrManager) return true;
+        if (this.isMember && !this.strictMode && this.userId === creatorId) return true;
+        return false;
+    };
+
+    canDeleteBoards = (creatorId: string) => {
+        if (this.isAdminOrManager) return true;
+        if (this.isMember && !this.strictMode && this.userId === creatorId) return true;
+        return false;
+    };
+
+    canCreateLists = () => {
+        if (this.isAdminOrManager) return true;
+        if (this.isMember && !this.strictMode) return true;
+        return false;
+    };
+
+    canEditLists = () => {
+        if (this.isAdminOrManager) return true;
+        if (this.isMember && !this.strictMode) return true;
+        return false;
+    };
+
+    canMoveLists = () => {
+        if (this.isAdminOrManager) return true;
+        if (this.isMember && !this.strictMode) return true;
+        return false;
+    };
+
+    canDeleteLists = () => {
+        if (this.isAdminOrManager) return true;
+        if (this.isMember && !this.strictMode) return true;
+        return false;
+    };
+
+    canCreateTasks = () => {
+        if (this.isAdminOrManager) return true;
+        if (this.isMember && !this.strictMode) return true;
+        return false;
+    };
+
+    canEditTasks = (assigneeId?: string) => {
+        if (this.isAdminOrManager) return true;
+        if (this.isMember) {
+            if (this.strictMode) {
+                return assigneeId === this.userId;
+            } else {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    canMoveTasks = (assigneeId?: string) => {
+        if (this.isAdminOrManager) return true;
+        if (this.isMember) {
+            if (this.strictMode) {
+                return assigneeId === this.userId;
+            } else {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    canAssignTasks = () => {
+        if (this.isAdminOrManager) return true;
+        if (this.isMember && !this.strictMode) return true;
+        return false;
+    };
+
+    canDeleteTasks = () => {
+        if (this.isAdminOrManager) return true;
+        if (this.isMember && !this.strictMode) return true;
+        return false;
+    };
+}
+
+export type SessionAPIContext = Omit<Session, "userId">;
+export type UserAPIContext = Omit<User, "passwordHash">;
+export type WorkspaceAPIContext = Workspace & {
+    membership: Pick<WorkspaceMembership, "role" | "createdAt">;
 };

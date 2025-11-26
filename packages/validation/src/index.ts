@@ -20,3 +20,9 @@ export const verificationCodeSchema = z.object({
 export const titleSchema = z.object({
     title: z.string().nonempty("Title required"),
 });
+
+export const taskSchema = z.object({
+    ...titleSchema.shape,
+    dueDate: z.date().optional(),
+    assigneeId: z.string().uuid().optional(),
+});

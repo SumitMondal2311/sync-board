@@ -1,29 +1,18 @@
-import { prisma, WorkspaceMemberRole } from "@repo/database";
-import { permissions } from "@repo/types";
+import { prisma } from "@repo/database";
 import { v7 as uuidv7 } from "uuid";
-import { APIError } from "../../helpers/api-error.js";
 
 export const boardService = {
     create: async ({
+        title,
+        userId,
         workspaceId,
         email,
-        title,
-        role,
-        userId,
     }: {
-        userId: string;
-        role: WorkspaceMemberRole;
-        title: string;
         email: string;
         workspaceId: string;
+        userId: string;
+        title: string;
     }): Promise<void> => {
-        if (!permissions[role].includes("workspace:boards:create")) {
-            throw new APIError(403, {
-                message: "You do not have the permission to perform this action.",
-                code: "forbidden",
-            });
-        }
-
         await prisma.$transaction(async (tx) => {
             await tx.board.create({
                 data: {

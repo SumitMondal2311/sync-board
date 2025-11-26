@@ -1,31 +1,27 @@
 import { prisma } from "@repo/database";
-import { Request } from "express";
+import { WorkspacePolicy } from "@repo/types";
 import { APIError } from "../helpers/api-error.js";
 import { asyncHandler } from "../helpers/async-handler.js";
-import { AuthContext } from "../types/auth-context.js";
-import { WorkspaceContext } from "../types/workspace-context.js";
+import { RequireAuthRequest, RequireWorkspaceRequest } from "../types/custom-request.js";
 
 export const requireWorkspaceMiddleware = asyncHandler(
     async (
-        req: Request & {
-            headers: { "x-workspace-id"?: string };
-            authContext: AuthContext;
-            workspaceContext: WorkspaceContext;
-        },
+        req: RequireAuthRequest &
+            RequireWorkspaceRequest & {
+                headers: { "x-workspace-id"?: string };
+            },
         _,
         next
     ) => {
         const workspaceId = req.headers["x-workspace-id"];
         if (!workspaceId) {
             throw new APIError(400, {
-                message: "Missing 'X-Workspace-ID' header.",
-                code: "missing_request_header",
+                message: "Missing 'x-workspace-id' header.",
+                code: "missing_header",
             });
         }
 
-        const {
-            session: { user },
-        } = req.authContext;
+        const { user } = req.session;
 
         const workspaceMembershipRecord = await prisma.workspaceMembership.findUnique({
             where: {
@@ -34,21 +30,34 @@ export const requireWorkspaceMiddleware = asyncHandler(
                     workspaceId: workspaceId,
                 },
             },
-            select: { createdAt: true, role: true, workspace: true },
+            select: {
+                role: true,
+                workspace: {
+                    select: { strictMode: true },
+                },
+            },
         });
 
         if (!workspaceMembershipRecord) {
             throw new APIError(403, {
-                message: "Access forbidden. You are not a member of the requested workspace.",
+                message: "Current user does not belong to the requested workspace.",
                 code: "forbidden_workspace_access",
             });
         }
 
-        const { workspace, ...rest } = workspaceMembershipRecord;
+        const {
+            workspace: { strictMode },
+            role,
+        } = workspaceMembershipRecord;
 
-        req.workspaceContext = {
-            workspace: { membership: rest, ...workspace },
-        };
+        const workspacePolicy = new WorkspacePolicy({
+            strictMode,
+            role,
+            userId: user.id,
+        });
+
+        req.activeWorkspaceId = workspaceId;
+        req.workspacePolicy = workspacePolicy;
 
         next();
     }
