@@ -3,9 +3,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AuthSchema } from "@repo/types";
 import { authSchema } from "@repo/validation";
-import { Loader2 } from "lucide-react";
+import { Loader } from "lucide-react";
 import Link from "next/link";
-import { Controller, useForm } from "react-hook-form";
+import * as React from "react";
+import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { SocialAuthButtonGroup } from "@/components/social-auth-button-group";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { useSignUp } from "@/hooks/mutations/use-sign-up";
 
 export const SignUpForm = ({
     setReadyForVerification,
@@ -21,6 +23,9 @@ export const SignUpForm = ({
     setEmail: (_: string) => void;
     setReadyForVerification: (_: boolean) => void;
 }) => {
+    const [isLoading, setIsLoading] = React.useState(false);
+    const { mutate, isPending, isSuccess } = useSignUp();
+
     const form = useForm<AuthSchema>({
         resolver: zodResolver(authSchema),
         defaultValues: {
@@ -30,16 +35,29 @@ export const SignUpForm = ({
         mode: "onTouched",
     });
 
-    const onSubmit = async (data: AuthSchema) => {
-        await new Promise((r) => setTimeout(r, 1000));
-        setEmail(data.email);
-        setReadyForVerification(true);
-        form.reset();
+    const { email } = useWatch({ control: form.control });
+    React.useEffect(() => {
+        if (isSuccess) {
+            setEmail(email ?? "");
+            setReadyForVerification(true);
+        }
+    }, [isSuccess, setEmail, email, setReadyForVerification]);
+
+    React.useEffect(() => {
+        if (form.formState.isSubmitting || isPending) {
+            setIsLoading(true);
+        } else {
+            setIsLoading(false);
+        }
+    }, [form, isPending, setIsLoading]);
+
+    const onSubmit = (formData: AuthSchema) => {
+        mutate(formData);
     };
 
     return (
         <Card className="w-full max-w-sm">
-            {form.formState.isSubmitting ? (
+            {isLoading ? (
                 <div className="bg-background/50 absolute inset-0 z-10 rounded-md" />
             ) : null}
             <CardHeader className="gap-0">
@@ -62,7 +80,7 @@ export const SignUpForm = ({
                                         Email
                                     </FieldLabel>
                                     <Input
-                                        tabIndex={0}
+                                        tabIndex={1}
                                         type="email"
                                         id="email"
                                         required
@@ -84,7 +102,7 @@ export const SignUpForm = ({
                                         Password
                                     </FieldLabel>
                                     <Input
-                                        tabIndex={1}
+                                        tabIndex={2}
                                         type="password"
                                         id="password"
                                         required
@@ -97,12 +115,9 @@ export const SignUpForm = ({
                             )}
                         />
                         <Field>
-                            <Button disabled={form.formState.isSubmitting} type="submit">
-                                {form.formState.isSubmitting ? (
-                                    <Loader2 className="animate-spin" />
-                                ) : (
-                                    "Continue"
-                                )}
+                            <Button tabIndex={3} disabled={isLoading} type="submit">
+                                {isLoading ? <Loader className="animate-spin" /> : null}
+                                Continue
                             </Button>
                             <FieldDescription className="flex items-center justify-center gap-2">
                                 Already have an account?

@@ -3,9 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AuthSchema } from "@repo/types";
 import { authSchema } from "@repo/validation";
-import { Loader2 } from "lucide-react";
+import { Loader } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import * as React from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { SocialAuthButtonGroup } from "@/components/social-auth-button-group";
@@ -14,10 +14,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { useSignIn } from "@/hooks/mutations/use-sign-in";
 import { cn } from "@/lib/utils";
 
 export const SignInForm = () => {
-    const router = useRouter();
+    const [isLoading, setIsLoading] = React.useState(false);
+    const { mutate, isPending } = useSignIn();
 
     const form = useForm<AuthSchema>({
         resolver: zodResolver(authSchema),
@@ -28,16 +30,21 @@ export const SignInForm = () => {
         mode: "onTouched",
     });
 
-    const onSubmit = async () => {
-        await new Promise((r) => setTimeout(r, 1000));
-        router.push("/dashboard/boards");
+    React.useEffect(() => {
+        if (form.formState.isSubmitting || isPending) {
+            setIsLoading(true);
+        } else {
+            setIsLoading(false);
+        }
+    }, [form, isPending, setIsLoading]);
+
+    const onSubmit = (formData: AuthSchema) => {
+        mutate(formData);
     };
 
     return (
         <Card className="w-full max-w-sm">
-            {form.formState.isSubmitting ? (
-                <div className="bg-background/50 absolute inset-0 rounded-md" />
-            ) : null}
+            {isLoading ? <div className="bg-background/50 absolute inset-0 rounded-md" /> : null}
             <CardHeader className="gap-0">
                 <CardTitle className="font-mono text-2xl">Welcome back</CardTitle>
                 <CardDescription>
@@ -100,12 +107,9 @@ export const SignInForm = () => {
                             )}
                         />
                         <Field>
-                            <Button disabled={form.formState.isSubmitting} type="submit">
-                                {form.formState.isSubmitting ? (
-                                    <Loader2 className="animate-spin" />
-                                ) : (
-                                    "Continue"
-                                )}
+                            <Button disabled={isLoading} type="submit">
+                                {isLoading ? <Loader className="animate-spin" /> : null}
+                                Continue
                             </Button>
                             <FieldDescription className="flex items-center justify-center gap-2">
                                 Don&apos;t have an account?

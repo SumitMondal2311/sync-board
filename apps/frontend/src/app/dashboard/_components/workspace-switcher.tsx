@@ -10,12 +10,11 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
-import { workspaces } from "@/configs/mock-data";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { workspaceStore } from "@/stores/workspace.store";
+import { authStore } from "@/stores/auth.store";
 
 export const WorkspaceSwitcher = () => {
-    const { activeWorkspace, setActiveWorkspace } = workspaceStore();
+    const { activeWorkspace, session, setActiveWorkspace } = authStore();
     const isMobile = useIsMobile();
 
     if (!activeWorkspace) {
@@ -23,7 +22,9 @@ export const WorkspaceSwitcher = () => {
     }
 
     const handleSelectWorkspace = (workspaceId: string) => {
-        setActiveWorkspace(workspaces.find((workspace) => workspace.id === workspaceId));
+        setActiveWorkspace(
+            session?.user.workspaces.find((workspace) => workspace.id === workspaceId) ?? null
+        );
         localStorage.setItem("active-workspace-id", workspaceId);
     };
 
@@ -49,7 +50,7 @@ export const WorkspaceSwitcher = () => {
                         side={isMobile ? "bottom" : "right"}
                         className="w-(--radix-dropdown-menu-trigger-width)"
                     >
-                        {workspaces.map((workspace, index) => (
+                        {session?.user.workspaces.map((workspace, index) => (
                             <DropdownMenuItem
                                 key={index}
                                 onClick={() => handleSelectWorkspace(workspace.id)}

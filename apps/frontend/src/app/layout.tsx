@@ -3,6 +3,7 @@ import { Geist_Mono, Outfit } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
 import "../styles/global.css";
+import QueryProvider from "./_components/query-provider";
 
 const geistMono = Geist_Mono({
     variable: "--font-geist-mono",
@@ -30,7 +31,7 @@ export default function Layout({
                     themes={["dark", "light", "system"]}
                     defaultTheme="system"
                 >
-                    {children}
+                    <QueryProvider>{children}</QueryProvider>
                     <Toaster />
                 </ThemeProvider>
             </body>

@@ -143,6 +143,12 @@ export type WorkspaceAPIContext = Workspace & {
     membership: Pick<WorkspaceMembership, "role" | "createdAt">;
 };
 
+export type GetSessionAPISuccessResponse = SessionAPIContext & {
+    user: UserAPIContext & {
+        workspaces: WorkspaceAPIContext[];
+    };
+};
+
 export type GetAllBoardsAPISuccessResponse = Array<Pick<Board, "id" | "title">>;
 export type GetTaskAPISuccessResponse = Array<
     Pick<Task, "title" | "id" | "position" | "dueDate"> & {

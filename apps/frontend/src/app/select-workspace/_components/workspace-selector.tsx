@@ -5,17 +5,19 @@ import { useRouter } from "next/navigation";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { workspaces } from "@/configs/mock-data";
-import { workspaceStore } from "@/stores/workspace.store";
+import { authStore } from "@/stores/auth.store";
 
 export const WorkspaceSelector = () => {
-    const { setActiveWorkspace } = workspaceStore();
+    const user = authStore((state) => state.session?.user);
+    const setActiveWorkspace = authStore((state) => state.setActiveWorkspace);
     const router = useRouter();
 
     const handleSelectWorkspace = (workspaceId: string) => {
-        setActiveWorkspace(workspaces.find((workspace) => workspace.id === workspaceId));
         localStorage.setItem("active-workspace-id", workspaceId);
         router.replace("/dashboard/boards");
+        setActiveWorkspace(
+            user?.workspaces.find((workspace) => workspace.id === workspaceId) ?? null
+        );
     };
 
     return (
@@ -27,7 +29,7 @@ export const WorkspaceSelector = () => {
             <Separator />
             <CardContent>
                 <div className="max-h-64 divide-y overflow-y-auto rounded-md border md:max-h-80">
-                    {workspaces.map((workspace, index) => (
+                    {user?.workspaces.map((workspace, index) => (
                         <button
                             key={index}
                             onClick={() => handleSelectWorkspace(workspace.id)}

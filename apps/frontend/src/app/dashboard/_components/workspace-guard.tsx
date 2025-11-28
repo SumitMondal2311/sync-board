@@ -3,44 +3,73 @@
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
-import { workspaces } from "@/configs/mock-data";
-import { workspaceStore } from "@/stores/workspace.store";
+import { apiClient } from "@/lib/api-client";
+import { authStore } from "@/stores/auth.store";
+import { GetSessionAPISuccessResponse } from "@repo/types";
+import { useQuery } from "@tanstack/react-query";
 
 export const WorkspaceGuard = ({ children }: { children: React.ReactNode }) => {
-    const { activeWorkspace, setActiveWorkspace } = workspaceStore();
+    const activeWorkspace = authStore((state) => state.activeWorkspace);
+    const setActiveWorkspace = authStore((state) => state.setActiveWorkspace);
+    const setSession = authStore((state) => state.setSession);
     const router = useRouter();
 
+    const { isLoading, isSuccess, data } = useQuery({
+        queryKey: ["session"],
+        queryFn: () =>
+            apiClient.get<{ session: GetSessionAPISuccessResponse }>("/me/sessions/current"),
+        staleTime: 5 * 60 * 1000,
+        gcTime: 10 * 60 * 1000,
+        refetchOnReconnect: true,
+    });
+
     React.useEffect(() => {
-        const storedWorkspaceId = localStorage.getItem("active-workspace-id");
-
-        if (workspaces.length === 1) {
-            setActiveWorkspace(workspaces[0]);
-            if (storedWorkspaceId !== workspaces[0].id) {
-                localStorage.setItem("active-workspace-id", workspaces[0].id);
-            }
+        if (isSuccess) {
+            setSession(data.data.session);
         }
+    }, [isSuccess, setSession, data]);
 
-        if (workspaces.length > 1) {
-            if (storedWorkspaceId) {
-                const resolvedWorkspace = workspaces.find(
-                    (workspace) => workspace.id === storedWorkspaceId
-                );
+    React.useEffect(() => {
+        if (isSuccess) {
+            const {
+                session: {
+                    user: { workspaces },
+                },
+            } = data.data;
+            const storedWorkspaceId = localStorage.getItem("active-workspace-id");
+            if (workspaces.length === 1) {
+                setActiveWorkspace(workspaces[0]);
+                if (storedWorkspaceId !== workspaces[0].id) {
+                    localStorage.setItem("active-workspace-id", workspaces[0].id);
+                }
+            }
 
-                if (resolvedWorkspace) {
-                    setActiveWorkspace(resolvedWorkspace);
+            if (workspaces.length > 1) {
+                if (storedWorkspaceId) {
+                    const resolvedWorkspace = workspaces.find(
+                        (workspace) => workspace.id === storedWorkspaceId
+                    );
+
+                    if (resolvedWorkspace) {
+                        setActiveWorkspace(resolvedWorkspace);
+                    } else {
+                        router.replace("/select-workspace");
+                        localStorage.removeItem("active-workspace-id");
+                    }
                 } else {
                     router.replace("/select-workspace");
-                    localStorage.removeItem("active-workspace-id");
                 }
-            } else {
-                router.replace("/select-workspace");
             }
         }
-    }, [router, setActiveWorkspace]);
+    }, [isSuccess, data, router, setActiveWorkspace]);
+
+    if (isLoading) {
+        return null;
+    }
 
     if (!activeWorkspace) {
         return null;
-    } else {
-        return children;
     }
+
+    return <>{children}</>;
 };

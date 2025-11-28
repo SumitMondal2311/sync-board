@@ -4,8 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { VerificationCodeSchema } from "@repo/types";
 import { verificationCodeSchema } from "@repo/validation";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
-import { Loader2, MoveLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Loader, MoveLeft } from "lucide-react";
 import * as React from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 
@@ -13,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field, FieldDescription, FieldError, FieldGroup } from "@/components/ui/field";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { useSignUpVerification } from "@/hooks/mutations/use-sign-up-verification";
 
 export const SignUpVerificationForm = ({
     setReadyForVerification,
@@ -21,7 +21,8 @@ export const SignUpVerificationForm = ({
     email: string;
     setReadyForVerification: (state: boolean) => void;
 }) => {
-    const router = useRouter();
+    const [isLoading, setIsLoading] = React.useState(false);
+    const { mutate, isPending, isError } = useSignUpVerification();
 
     const form = useForm<VerificationCodeSchema>({
         resolver: zodResolver(verificationCodeSchema),
@@ -31,27 +32,37 @@ export const SignUpVerificationForm = ({
         mode: "onSubmit",
     });
 
-    const code = useWatch({
-        control: form.control,
-        name: "code",
-    });
-
     React.useEffect(() => {
         form.setFocus("code");
     }, [form]);
 
-    const onSubmit = async () => {
-        await new Promise((r) => setTimeout(r, 1000));
-        router.push("/dashboard/boards");
+    React.useEffect(() => {
+        if (isError) {
+            form.reset();
+        }
+    }, [isError, form]);
+
+    React.useEffect(() => {
+        if (form.formState.isSubmitting || isPending) {
+            setIsLoading(true);
+        } else {
+            setIsLoading(false);
+        }
+    }, [form, isPending, setIsLoading]);
+
+    const { code } = useWatch({ control: form.control });
+
+    const onSubmit = (data: VerificationCodeSchema) => {
+        mutate(data);
     };
 
     return (
         <Card className="relative w-full max-w-sm">
-            {form.formState.isSubmitting ? (
+            {isLoading ? (
                 <div className="bg-background/50 absolute inset-0 z-10 rounded-md" />
             ) : null}
             <Button
-                disabled={form.formState.isSubmitting}
+                disabled={isLoading}
                 variant="link"
                 onClick={() => setReadyForVerification(false)}
                 className="absolute -top-10 left-0"
@@ -95,12 +106,9 @@ export const SignUpVerificationForm = ({
                             )}
                         />
                         <Field>
-                            <Button disabled={code.length !== 6} type="submit">
-                                {form.formState.isSubmitting ? (
-                                    <Loader2 className="animate-spin" />
-                                ) : (
-                                    "Continue"
-                                )}
+                            <Button disabled={code?.length !== 6} type="submit">
+                                {isLoading ? <Loader className="animate-spin" /> : null}
+                                Continue
                             </Button>
                             <FieldDescription className="flex items-center justify-center gap-2">
                                 Didn&apos;t receive a code?
