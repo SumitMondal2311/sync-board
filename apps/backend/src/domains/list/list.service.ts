@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-import { GetAllListsAPISuccessResponse } from "@repo/types";
+import { CreateListAPISuccessResponse, GetAllListsAPISuccessResponse } from "@repo/types";
 import { v7 as uuidv7 } from "uuid";
 import { APIError } from "../../helpers/api-error.js";
 
@@ -16,7 +16,9 @@ export const listService = {
         title: string;
         workspaceId: string;
         boardId: string;
-    }): Promise<void> => {
+    }): Promise<{
+        list: CreateListAPISuccessResponse;
+    }> => {
         // ----- Create List Service ----- //
 
         const boardRecord = await prisma.board.findFirst({
@@ -35,8 +37,8 @@ export const listService = {
             where: { boardId },
         });
 
-        await prisma.$transaction(async (tx) => {
-            await tx.list.create({
+        const { list } = await prisma.$transaction(async (tx) => {
+            const list = await tx.list.create({
                 data: {
                     id: uuidv7(),
                     position: listCount + 1,
@@ -45,7 +47,7 @@ export const listService = {
                         connect: { id: boardId },
                     },
                 },
-                select: { id: true },
+                select: { id: true, position: true },
             });
             await tx.workspaceActivity.create({
                 data: {
@@ -59,7 +61,13 @@ export const listService = {
                     },
                 },
             });
+
+            return { list };
         });
+
+        return {
+            list: { title, ...list },
+        };
     },
 
     // ----- Get Lists Service ----- //

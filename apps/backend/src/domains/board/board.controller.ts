@@ -1,5 +1,10 @@
-import { TitleSchema } from "@repo/types";
+import {
+    CreateBoardAPISuccessResponse,
+    GetAllBoardsAPISuccessResponse,
+    TitleSchema,
+} from "@repo/types";
 import { titleSchema } from "@repo/validation";
+import { Response } from "express";
 import { APIError } from "../../helpers/api-error.js";
 import { asyncHandler } from "../../helpers/async-handler.js";
 import { RequireAuthRequest, RequireWorkspaceRequest } from "../../types/custom-request.js";
@@ -14,7 +19,9 @@ export const boardController = {
                 RequireWorkspaceRequest & {
                     body: TitleSchema;
                 },
-            res
+            res: Response<{
+                board: CreateBoardAPISuccessResponse;
+            }>
         ) => {
             if (!req.workspacePolicy.canCreateBoards()) {
                 throw new APIError(403, {
@@ -32,21 +39,26 @@ export const boardController = {
             }
 
             const { id: userId, email } = req.session.user;
-            await boardService.create({
+            const { board } = await boardService.create({
                 userId,
                 email,
                 workspaceId: req.activeWorkspaceId,
                 ...data,
             });
 
-            res.status(201).json({ success: true });
+            res.status(201).json({ board });
         }
     ),
 
     // ----- Get Boards Controller ----- //
 
-    getList: asyncHandler(async (req: RequireWorkspaceRequest, res) => {
-        const { boards } = await boardService.getList(req.activeWorkspaceId);
-        res.status(200).json({ boards });
-    }),
+    getList: asyncHandler(
+        async (
+            req: RequireWorkspaceRequest,
+            res: Response<{ boards: GetAllBoardsAPISuccessResponse }>
+        ) => {
+            const { boards } = await boardService.getList(req.activeWorkspaceId);
+            res.status(200).json({ boards });
+        }
+    ),
 };

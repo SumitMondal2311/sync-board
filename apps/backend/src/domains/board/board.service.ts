@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-import { GetAllBoardsAPISuccessResponse } from "@repo/types";
+import { CreateBoardAPISuccessResponse, GetAllBoardsAPISuccessResponse } from "@repo/types";
 import { v7 as uuidv7 } from "uuid";
 
 export const boardService = {
@@ -15,9 +15,11 @@ export const boardService = {
         workspaceId: string;
         userId: string;
         title: string;
-    }): Promise<void> => {
-        await prisma.$transaction(async (tx) => {
-            await tx.board.create({
+    }): Promise<{
+        board: CreateBoardAPISuccessResponse;
+    }> => {
+        const { board } = await prisma.$transaction(async (tx) => {
+            const board = await tx.board.create({
                 data: {
                     id: uuidv7(),
                     title,
@@ -42,7 +44,13 @@ export const boardService = {
                     },
                 },
             });
+
+            return { board };
         });
+
+        return {
+            board: { title, ...board },
+        };
     },
 
     // ----- Get Boards Service ----- //

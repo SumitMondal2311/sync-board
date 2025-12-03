@@ -1,5 +1,10 @@
-import { TitleSchema } from "@repo/types";
+import {
+    CreateListAPISuccessResponse,
+    GetAllListsAPISuccessResponse,
+    TitleSchema,
+} from "@repo/types";
 import { titleSchema } from "@repo/validation";
+import { Response } from "express";
 import { APIError } from "../../helpers/api-error.js";
 import { asyncHandler } from "../../helpers/async-handler.js";
 import { RequireAuthRequest, RequireWorkspaceRequest } from "../../types/custom-request.js";
@@ -15,7 +20,7 @@ export const listController = {
                     body: TitleSchema;
                     query: { board_id?: string };
                 },
-            res
+            res: Response<{ list: CreateListAPISuccessResponse }>
         ) => {
             const { workspacePolicy, query, body, session, activeWorkspaceId } = req;
             if (!workspacePolicy.canCreateLists()) {
@@ -42,7 +47,7 @@ export const listController = {
             }
 
             const { id: userId, email } = session.user;
-            await listService.create({
+            const { list } = await listService.create({
                 userId,
                 email,
                 boardId: board_id,
@@ -50,7 +55,7 @@ export const listController = {
                 ...data,
             });
 
-            res.status(201).json({ success: true });
+            res.status(201).json({ list });
         }
     ),
 
@@ -61,7 +66,7 @@ export const listController = {
             req: RequireWorkspaceRequest & {
                 query: { board_id?: string };
             },
-            res
+            res: Response<{ lists: GetAllListsAPISuccessResponse }>
         ) => {
             const { board_id } = req.query;
             if (!board_id) {
