@@ -13,7 +13,7 @@ export function ThemeSwitcher() {
         <Tooltip>
             <TooltipTrigger asChild>
                 <Button
-                    size="icon-sm"
+                    size="icon"
                     variant="secondary"
                     onClick={() =>
                         setTheme(

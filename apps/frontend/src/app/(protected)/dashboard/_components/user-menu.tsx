@@ -113,10 +113,7 @@ export const UserMenu = () => {
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction
-                                        onClick={() => mutate()}
-                                        onSelect={(e) => e.preventDefault()}
-                                    >
+                                    <AlertDialogAction onClick={() => mutate()}>
                                         Continue
                                     </AlertDialogAction>
                                 </AlertDialogFooter>

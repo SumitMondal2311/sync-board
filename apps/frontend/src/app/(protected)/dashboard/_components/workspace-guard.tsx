@@ -3,39 +3,20 @@
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
-import { apiClient } from "@/lib/api-client";
 import { authStore } from "@/stores/auth.store";
-import { GetSessionAPISuccessResponse } from "@repo/types";
-import { useQuery } from "@tanstack/react-query";
+import { workspaceStore } from "@/stores/workspace.store";
 
 export const WorkspaceGuard = ({ children }: { children: React.ReactNode }) => {
-    const activeWorkspace = authStore((state) => state.activeWorkspace);
-    const setActiveWorkspace = authStore((state) => state.setActiveWorkspace);
-    const setSession = authStore((state) => state.setSession);
+    const activeWorkspace = workspaceStore((st) => st.activeWorkspace);
+    const session = authStore((st) => st.session);
+    const { setActiveWorkspace } = workspaceStore();
     const router = useRouter();
 
-    const { isLoading, isSuccess, data } = useQuery({
-        queryKey: ["session"],
-        queryFn: () =>
-            apiClient.get<{ session: GetSessionAPISuccessResponse }>("/me/sessions/current"),
-        staleTime: 5 * 60 * 1000,
-        gcTime: 10 * 60 * 1000,
-        refetchOnReconnect: true,
-    });
-
     React.useEffect(() => {
-        if (isSuccess) {
-            setSession(data.data.session);
-        }
-    }, [isSuccess, setSession, data]);
-
-    React.useEffect(() => {
-        if (isSuccess) {
+        if (session) {
             const {
-                session: {
-                    user: { workspaces },
-                },
-            } = data.data;
+                user: { workspaces },
+            } = session;
             const storedWorkspaceId = localStorage.getItem("active-workspace-id");
             if (workspaces.length === 1) {
                 setActiveWorkspace(workspaces[0]);
@@ -61,15 +42,11 @@ export const WorkspaceGuard = ({ children }: { children: React.ReactNode }) => {
                 }
             }
         }
-    }, [isSuccess, data, router, setActiveWorkspace]);
-
-    if (isLoading) {
-        return null;
-    }
+    }, [session, router, setActiveWorkspace]);
 
     if (!activeWorkspace) {
         return null;
     }
 
-    return <>{children}</>;
+    return <main className="flex h-screen">{children}</main>;
 };

@@ -24,7 +24,7 @@ export const SignUpForm = ({
     setReadyForVerification: (_: boolean) => void;
 }) => {
     const [isLoading, setIsLoading] = React.useState(false);
-    const { mutate, isPending, isSuccess } = useSignUp();
+    const { mutate, isPending, isError, isSuccess } = useSignUp();
 
     const form = useForm<AuthSchema>({
         resolver: zodResolver(authSchema),
@@ -47,9 +47,11 @@ export const SignUpForm = ({
         if (form.formState.isSubmitting || isPending) {
             setIsLoading(true);
         } else {
-            setIsLoading(false);
+            if (isError) {
+                setIsLoading(false);
+            }
         }
-    }, [form, isPending, setIsLoading]);
+    }, [form, isPending, isError, setIsLoading]);
 
     const onSubmit = (formData: AuthSchema) => {
         mutate(formData);

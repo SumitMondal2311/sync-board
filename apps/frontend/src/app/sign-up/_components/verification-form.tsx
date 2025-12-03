@@ -46,9 +46,11 @@ export const SignUpVerificationForm = ({
         if (form.formState.isSubmitting || isPending) {
             setIsLoading(true);
         } else {
-            setIsLoading(false);
+            if (isError) {
+                setIsLoading(false);
+            }
         }
-    }, [form, isPending, setIsLoading]);
+    }, [form, isPending, isError, setIsLoading]);
 
     const { code } = useWatch({ control: form.control });
 

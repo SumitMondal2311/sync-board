@@ -149,6 +149,7 @@ export type GetSessionAPISuccessResponse = SessionAPIContext & {
     };
 };
 
+export type CreateBoardAPISuccessResponse = Pick<Board, "id" | "title">;
 export type GetAllBoardsAPISuccessResponse = Array<Pick<Board, "id" | "title">>;
 export type GetTaskAPISuccessResponse = Array<
     Pick<Task, "title" | "id" | "position" | "dueDate"> & {
@@ -156,6 +157,7 @@ export type GetTaskAPISuccessResponse = Array<
         comments: Array<Pick<Comment, "userId" | "id" | "text" | "createdAt">>;
     }
 >;
+export type CreateListAPISuccessResponse = Pick<List, "title" | "id" | "position">;
 export type GetAllListsAPISuccessResponse = Array<
     Pick<List, "title" | "id" | "position"> & {
         tasks: Array<

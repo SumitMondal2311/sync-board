@@ -1,6 +1,6 @@
 "use client";
 
-import { Building, ChevronsUpDown, Plus } from "lucide-react";
+import { Building, ChevronsUpDown } from "lucide-react";
 
 import {
     DropdownMenu,
@@ -12,9 +12,13 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { authStore } from "@/stores/auth.store";
+import { workspaceStore } from "@/stores/workspace.store";
+import { CreateWorkspaceButton } from "./create-workspace-button";
 
 export const WorkspaceSwitcher = () => {
-    const { activeWorkspace, session, setActiveWorkspace } = authStore();
+    const activeWorkspace = workspaceStore((st) => st.activeWorkspace);
+    const workspaces = authStore((st) => st.session?.user.workspaces);
+    const { setActiveWorkspace } = workspaceStore();
     const isMobile = useIsMobile();
 
     if (!activeWorkspace) {
@@ -22,9 +26,7 @@ export const WorkspaceSwitcher = () => {
     }
 
     const handleSelectWorkspace = (workspaceId: string) => {
-        setActiveWorkspace(
-            session?.user.workspaces.find((workspace) => workspace.id === workspaceId) ?? null
-        );
+        setActiveWorkspace(workspaces?.find((workspace) => workspace.id === workspaceId) ?? null);
         localStorage.setItem("active-workspace-id", workspaceId);
     };
 
@@ -48,9 +50,9 @@ export const WorkspaceSwitcher = () => {
                         sideOffset={8}
                         align="start"
                         side={isMobile ? "bottom" : "right"}
-                        className="w-(--radix-dropdown-menu-trigger-width)"
+                        className="w-(--radix-dropdown-menu-trigger-width) min-w-56"
                     >
-                        {session?.user.workspaces.map((workspace, index) => (
+                        {workspaces?.map((workspace, index) => (
                             <DropdownMenuItem
                                 key={index}
                                 onClick={() => handleSelectWorkspace(workspace.id)}
@@ -63,12 +65,7 @@ export const WorkspaceSwitcher = () => {
                             </DropdownMenuItem>
                         ))}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="gap-2 p-2">
-                            <div className="grid aspect-square h-8 place-items-center rounded-md border">
-                                <Plus />
-                            </div>
-                            <div className="text-muted-foreground">Add workspace</div>
-                        </DropdownMenuItem>
+                        <CreateWorkspaceButton />
                     </DropdownMenuContent>
                 </DropdownMenu>
             </SidebarMenuItem>
