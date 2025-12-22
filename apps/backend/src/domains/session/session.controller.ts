@@ -1,5 +1,6 @@
-import { SessionAPIContext } from "@repo/types";
+import { COOKIES, GetActiveSessionsResponse, GetSessionResponse } from "@repo/types";
 import { Response } from "express";
+
 import { IS_PROD } from "../../configs/constants.js";
 import { APIError } from "../../helpers/api-error.js";
 import { asyncHandler } from "../../helpers/async-handler.js";
@@ -7,26 +8,34 @@ import { RequireAuthRequest } from "../../types/custom-request.js";
 import { sessionService } from "./session.service.js";
 
 export const sessionController = {
-    // ----- Get Session Controller ----- //
+    // ----------------------------------------
+    // Get Current Session
+    // ----------------------------------------
 
-    get: asyncHandler(
+    getCurrent: asyncHandler(
         async (
             req: RequireAuthRequest,
-            res: Response<{ session: SessionAPIContext }>
+            res: Response<GetSessionResponse>
             // eslint-disable-next-line @typescript-eslint/require-await
         ) => {
-            res.json({ session: req.session });
+            res.json(req.session);
         }
     ),
 
-    // ----- Get All Session Controller ----- //
+    // ----------------------------------------
+    // List Active Sessions
+    // ----------------------------------------
 
-    getActiveList: asyncHandler(async (req: RequireAuthRequest, res) => {
-        const { sessions } = await sessionService.getActiveList(req.session.user.id);
-        res.json({ sessions });
-    }),
+    listActive: asyncHandler(
+        async (req: RequireAuthRequest, res: Response<GetActiveSessionsResponse>) => {
+            const { activeSessions } = await sessionService.listActive(req.session.user.id);
+            res.json(activeSessions);
+        }
+    ),
 
-    // ----- Delete Session Controller ----- //
+    // ----------------------------------------
+    // Delete Session
+    // ----------------------------------------
 
     delete: asyncHandler(
         async (
@@ -35,11 +44,11 @@ export const sessionController = {
             },
             res
         ) => {
-            const { id: sessionId } = req.params;
+            const sessionId = req.params.id;
             if (!sessionId) {
                 throw new APIError(400, {
-                    message: "Missing 'id: <session_id>' param.",
-                    code: "missing_path_param",
+                    code: "missing_parameter",
+                    message: "Required parameter is missing.",
                 });
             }
 
@@ -50,7 +59,7 @@ export const sessionController = {
 
             if (sessionId === req.session.id) {
                 return res
-                    .clearCookie("__session_id", {
+                    .clearCookie(COOKIES.session_id, {
                         secure: IS_PROD,
                         httpOnly: true,
                         sameSite: "lax",

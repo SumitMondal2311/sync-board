@@ -1,4 +1,6 @@
 import { prisma } from "@repo/database";
+import { COOKIES } from "@repo/types";
+
 import { IS_PROD, SESSION_EXPIRY } from "../configs/constants.js";
 import { addSecondsToNow } from "../helpers/add-seconds-to-now.js";
 import { APIError } from "../helpers/api-error.js";
@@ -8,21 +10,23 @@ import { RequireAuthRequest } from "../types/custom-request.js";
 export const requireAuthMiddleware = asyncHandler(
     async (
         req: RequireAuthRequest & {
-            cookies: { __session_id?: string };
+            cookies: {
+                [COOKIES.session_id]?: string;
+            };
         },
         res,
         next
     ) => {
-        const { __session_id } = req.cookies;
-        if (!__session_id) {
+        const sessionId = req.cookies[COOKIES.session_id];
+        if (!sessionId) {
             throw new APIError(401, {
-                message: "Authorization required. Please sign in to get authorized.",
                 code: "unauthorized",
+                message: "Authentication required.",
             });
         }
 
         const clearCookies = () => {
-            res.clearCookie("__session_id", {
+            res.clearCookie(COOKIES.session_id, {
                 secure: IS_PROD,
                 httpOnly: true,
                 sameSite: "lax",
@@ -30,36 +34,36 @@ export const requireAuthMiddleware = asyncHandler(
             });
         };
 
-        const sessionRecord = await prisma.session.findUnique({
-            where: { id: __session_id },
+        const session = await prisma.session.findUnique({
+            where: { id: sessionId },
             select: { expiresAt: true },
         });
 
-        if (!sessionRecord) {
+        if (!session) {
             clearCookies();
             throw new APIError(401, {
-                message: "Invalid session. Please sign in again.",
-                code: "unauthorized",
+                code: "invalid_session",
+                message: "Session is no longer valid.",
             });
         }
 
         const deleteSession = async () => {
             clearCookies();
             await prisma.session.deleteMany({
-                where: { id: __session_id },
+                where: { id: sessionId },
             });
         };
 
-        if (new Date() >= sessionRecord.expiresAt) {
+        if (new Date() >= session.expiresAt) {
             await deleteSession();
             throw new APIError(401, {
-                message: "Session has been expired. Please sign in again.",
-                code: "unauthorized",
+                code: "session_expired",
+                message: "Session has already expired.",
             });
         }
 
         const updatedSession = await prisma.session.update({
-            where: { id: __session_id },
+            where: { id: sessionId },
             data: {
                 expiresAt: addSecondsToNow(SESSION_EXPIRY),
                 lastActiveAt: new Date(),

@@ -1,22 +1,22 @@
 import { prisma } from "@repo/database";
-import { CreateBoardAPISuccessResponse, GetAllBoardsAPISuccessResponse } from "@repo/types";
+import { CreateBoardResponse, GetBoardsResponse } from "@repo/types";
 import { v7 as uuidv7 } from "uuid";
 
 export const boardService = {
-    // ----- Create Board Service ----- //
+    // ----------------------------------------
+    // Create Board
+    // ----------------------------------------
 
     create: async ({
-        title,
         userId,
         workspaceId,
-        email,
+        title,
     }: {
-        email: string;
-        workspaceId: string;
         userId: string;
+        workspaceId: string;
         title: string;
     }): Promise<{
-        board: CreateBoardAPISuccessResponse;
+        board: CreateBoardResponse;
     }> => {
         const { board } = await prisma.$transaction(async (tx) => {
             const board = await tx.board.create({
@@ -30,11 +30,11 @@ export const boardService = {
                         connect: { id: workspaceId },
                     },
                 },
-                select: { id: true },
+                select: { creatorId: true, id: true },
             });
             await tx.workspaceActivity.create({
                 data: {
-                    message: `${email} created board "${title}"`,
+                    message: `Board "${title}" created`,
                     id: uuidv7(),
                     actor: {
                         connect: { id: userId },
@@ -53,18 +53,20 @@ export const boardService = {
         };
     },
 
-    // ----- Get Boards Service ----- //
+    // ----------------------------------------
+    // Get All Board
+    // ----------------------------------------
 
-    getList: async (
+    getAll: async (
         workspaceId: string
     ): Promise<{
-        boards: GetAllBoardsAPISuccessResponse;
+        boards: GetBoardsResponse;
     }> => {
-        const boardRecords = await prisma.board.findMany({
+        const boards = await prisma.board.findMany({
             where: { workspaceId },
-            select: { id: true, title: true },
+            select: { creatorId: true, id: true, title: true },
         });
 
-        return { boards: boardRecords };
+        return { boards };
     },
 };

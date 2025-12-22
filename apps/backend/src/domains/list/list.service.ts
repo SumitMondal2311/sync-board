@@ -1,35 +1,36 @@
-import { prisma } from "@repo/database";
-import { CreateListAPISuccessResponse, GetAllListsAPISuccessResponse } from "@repo/types";
 import { v7 as uuidv7 } from "uuid";
+
+import { prisma } from "@repo/database";
+import { CreateListResponse, GetListsResponse } from "@repo/types";
 import { APIError } from "../../helpers/api-error.js";
 
 export const listService = {
+    // ----------------------------------------
+    // Create List
+    // ----------------------------------------
+
     create: async ({
-        boardId,
-        workspaceId,
-        title,
-        email,
         userId,
+        workspaceId,
+        boardId,
+        title,
     }: {
         userId: string;
-        email: string;
-        title: string;
         workspaceId: string;
         boardId: string;
+        title: string;
     }): Promise<{
-        list: CreateListAPISuccessResponse;
+        list: CreateListResponse;
     }> => {
-        // ----- Create List Service ----- //
-
-        const boardRecord = await prisma.board.findFirst({
+        const board = await prisma.board.findFirst({
             where: { id: boardId, workspaceId },
             select: { title: true },
         });
 
-        if (!boardRecord) {
+        if (!board) {
             throw new APIError(404, {
-                message: "Board does not exist or belong to the current workspace",
                 code: "resource_not_found",
+                message: "Board not found.",
             });
         }
 
@@ -51,7 +52,7 @@ export const listService = {
             });
             await tx.workspaceActivity.create({
                 data: {
-                    message: `${email} created a list "${title}" into board "${boardRecord.title}"`,
+                    message: `List "${title}" created into board "${board.title}"`,
                     id: uuidv7(),
                     actor: {
                         connect: { id: userId },
@@ -70,18 +71,20 @@ export const listService = {
         };
     },
 
-    // ----- Get Lists Service ----- //
+    // ----------------------------------------
+    // Get All List
+    // ----------------------------------------
 
-    getList: async ({
+    getAll: async ({
         workspaceId,
         boardId,
     }: {
-        boardId: string;
         workspaceId: string;
+        boardId: string;
     }): Promise<{
-        lists: GetAllListsAPISuccessResponse;
+        lists: GetListsResponse;
     }> => {
-        const listRecords = await prisma.list.findMany({
+        const lists = await prisma.list.findMany({
             where: {
                 board: { id: boardId, workspaceId },
             },
@@ -109,7 +112,7 @@ export const listService = {
         });
 
         return {
-            lists: listRecords.map((listRecord) => ({
+            lists: lists.map((listRecord) => ({
                 title: listRecord.title,
                 id: listRecord.id,
                 position: listRecord.position,
@@ -122,7 +125,7 @@ export const listService = {
                             title: taskRecord.title,
                             assignee: taskRecord.assignee,
                             commentsCount: taskRecord._count.comments,
-                        }) satisfies GetAllListsAPISuccessResponse[number]["tasks"][number]
+                        }) satisfies GetListsResponse[number]["tasks"][number]
                 ),
             })),
         };

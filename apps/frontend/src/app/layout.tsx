@@ -1,9 +1,10 @@
 import { ThemeProvider } from "next-themes";
 import { Geist_Mono, Outfit } from "next/font/google";
+import * as React from "react";
 
 import { Toaster } from "@/components/ui/sonner";
-import "../styles/global.css";
-import QueryProvider from "./_components/query-provider";
+import QueryProvider from "@/providers/query-provider";
+import "@/styles/global.css";
 
 const geistMono = Geist_Mono({
     variable: "--font-geist-mono",

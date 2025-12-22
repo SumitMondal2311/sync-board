@@ -1,36 +1,43 @@
 import { prisma } from "@repo/database";
-import { TaskSchema } from "@repo/types";
 import { v7 as uuidv7 } from "uuid";
+
 import { APIError } from "../../helpers/api-error.js";
 
 export const taskService = {
     create: async ({
+        workspaceId,
         listId,
         boardId,
-        input,
-        email,
+        title,
+        assigneeId,
         userId,
-        workspaceId,
+        dueDate,
     }: {
         workspaceId: string;
-        userId: string;
-        email: string;
-        input: TaskSchema;
-        boardId: string;
         listId: string;
+        boardId: string;
+        title: string;
+        assigneeId?: string;
+        userId: string;
+        dueDate?: Date;
     }): Promise<void> => {
-        const listRecord = await prisma.list.findFirst({
+        const list = await prisma.list.findFirst({
             where: {
                 id: listId,
                 board: { id: boardId, workspaceId },
             },
-            select: { title: true },
+            select: {
+                title: true,
+                board: {
+                    select: { title: true },
+                },
+            },
         });
 
-        if (!listRecord) {
+        if (!list) {
             throw new APIError(404, {
-                message: "List does not exist or belong to the current board or workspace",
                 code: "resource_not_found",
+                message: "List not found.",
             });
         }
 
@@ -40,24 +47,23 @@ export const taskService = {
             },
         });
 
-        const { title, assigneeId, dueDate } = input;
         if (assigneeId) {
-            const workspaceMembershipRecord = await prisma.workspaceMembership.findFirst({
+            const assigneeMembership = await prisma.workspaceMembership.findFirst({
                 where: { userId: assigneeId, workspaceId },
                 select: { role: true },
             });
 
-            if (!workspaceMembershipRecord) {
+            if (!assigneeMembership) {
                 throw new APIError(404, {
-                    message: "Assignee does not belong to the current workspace",
                     code: "resource_not_found",
+                    message: "Assignee not found.",
                 });
             }
 
-            if (workspaceMembershipRecord.role === "GUEST") {
+            if (assigneeMembership.role === "GUEST") {
                 throw new APIError(403, {
-                    message: "Tasks cannot be assigned to Guests.",
-                    code: "forbidden_task_assign",
+                    code: "forbidden",
+                    message: "Action not permitted.",
                 });
             }
         }
@@ -82,7 +88,7 @@ export const taskService = {
             });
             await tx.workspaceActivity.create({
                 data: {
-                    message: `${email} created a task "${title}" into list "${listRecord.title}"`,
+                    message: `Task "${title}" created into board "${list.board.title}" list "${list.title}"`,
                     id: uuidv7(),
                     actor: {
                         connect: { id: userId },

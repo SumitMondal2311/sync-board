@@ -1,6 +1,14 @@
-import { AuthSchema, VerificationCodeSchema } from "@repo/types";
-import { authSchema, verificationCodeSchema } from "@repo/validation";
-import { Request } from "express";
+import {
+    COOKIES,
+    PrepareVerifyEmailResponse,
+    SignInSchema,
+    SignUpSchema,
+    VerifyEmailSchema,
+} from "@repo/types";
+
+import { signInSchema, signUpSchema, verifyEmailSchema } from "@repo/validation";
+import { Request, Response } from "express";
+
 import { IS_PROD, SESSION_EXPIRY, VERIFICATION_CODE_EXPIRY } from "../../configs/constants.js";
 import { APIError } from "../../helpers/api-error.js";
 import { asyncHandler } from "../../helpers/async-handler.js";
@@ -8,113 +16,155 @@ import { normalizedIP } from "../../helpers/normalized-ip.js";
 import { authService } from "./auth.service.js";
 
 export const authController = {
-    // ----- Sign Up Controller ----- //
+    // ----------------------------------------
+    // Sign Up
+    // ----------------------------------------
 
     signUp: asyncHandler(
         async (
             req: Request & {
-                body: AuthSchema;
+                body: SignUpSchema;
             },
             res
         ) => {
-            const { success, error, data } = authSchema.safeParse(req.body);
+            const { success, error, data } = signUpSchema.safeParse(req.body);
             if (!success) {
                 throw new APIError(400, {
+                    code: "validation_error",
                     message: error.issues[0].message,
-                    code: "validation_failed",
                 });
             }
 
             const { token } = await authService.signUp(data);
 
             res.status(201)
-                .cookie("__sua_token", token, {
-                    secure: IS_PROD,
+                .cookie(COOKIES.sign_up_attempt_token, token, {
                     httpOnly: true,
-                    sameSite: "lax",
                     maxAge: VERIFICATION_CODE_EXPIRY * 1000,
+                    sameSite: "lax",
+                    secure: IS_PROD,
                 })
                 .json({ success: true });
         }
     ),
 
-    // -----Verify Sign Up Controller ----- //
+    // ----------------------------------------
+    // Prepare Verify Email
+    // ----------------------------------------
 
-    verifySignUp: asyncHandler(
+    prepareVerifyEmail: asyncHandler(
         async (
             req: Request & {
-                body: VerificationCodeSchema;
-                cookies: { __sua_token?: string };
+                cookies: {
+                    [COOKIES.sign_up_attempt_token]?: string;
+                };
+            },
+            res: Response<PrepareVerifyEmailResponse>
+        ) => {
+            const token = req.cookies[COOKIES.sign_up_attempt_token];
+            if (!token) {
+                throw new APIError(400, {
+                    code: "missing_token",
+                    message: "Sign-up attempt token is missing.",
+                });
+            }
+
+            const { email } = await authService.prepareVerifyEmail(token);
+            const [username, domain] = email.split("@");
+
+            res.json({
+                maskedEmail:
+                    username.charAt(0) +
+                    "*".repeat(Math.max(username.length - 1, 1)) +
+                    "@" +
+                    domain,
+            });
+        }
+    ),
+
+    // ----------------------------------------
+    // Attempt Verify Email
+    // ----------------------------------------
+
+    attemptVerifyEmail: asyncHandler(
+        async (
+            req: Request & {
+                cookies: {
+                    [COOKIES.sign_up_attempt_token]?: string;
+                };
+                body: VerifyEmailSchema;
             },
             res
         ) => {
-            const { __sua_token } = req.cookies;
-            if (!__sua_token) {
+            const token = req.cookies[COOKIES.sign_up_attempt_token];
+            if (!token) {
                 throw new APIError(400, {
-                    message: "Missing sign up attempt token. Please go back and try again.",
-                    code: "missing_sign_up_attempt_token",
+                    code: "missing_token",
+                    message: "Sign-up attempt token is missing.",
                 });
             }
 
-            const { success, error, data } = verificationCodeSchema.safeParse(req.body);
+            const { success, error, data } = verifyEmailSchema.safeParse(req.body);
             if (!success) {
                 throw new APIError(400, {
+                    code: "validation_error",
                     message: error.issues[0].message,
-                    code: "validation_failed",
                 });
             }
 
-            const { sessionId } = await authService.verifySignUp({
-                ipAddress: normalizedIP(req.ip || "unknown"),
-                userAgent: req.headers["user-agent"] || "unknown",
+            const { sessionId } = await authService.attemptVerifyEmail({
+                token,
                 ...data,
-                signUpAttemptToken: __sua_token,
+                ipAddress: normalizedIP(req.ip ?? "unknown"),
+                userAgent: req.headers["user-agent"] ?? "unknown",
             });
 
-            res.cookie("__sua_token", "", {
-                secure: IS_PROD,
+            res.cookie(COOKIES.sign_up_attempt_token, "", {
                 httpOnly: true,
-                sameSite: "lax",
                 maxAge: 0,
+                sameSite: "lax",
+                secure: IS_PROD,
             })
-                .cookie("__session_id", sessionId, {
-                    secure: IS_PROD,
+                .cookie(COOKIES.session_id, sessionId, {
                     httpOnly: true,
-                    sameSite: "lax",
                     maxAge: SESSION_EXPIRY * 1000,
+                    sameSite: "lax",
+                    secure: IS_PROD,
                 })
                 .json({ success: true });
         }
     ),
 
-    // ----- Sign In Controller ----- //
+    // ----------------------------------------
+    // Sign In
+    // ----------------------------------------
 
     signIn: asyncHandler(
         async (
             req: Request & {
-                body: AuthSchema;
+                body: SignInSchema;
             },
             res
         ) => {
-            const { success, error, data } = authSchema.safeParse(req.body);
+            const { success, error, data } = signInSchema.safeParse(req.body);
             if (!success) {
                 throw new APIError(400, {
+                    code: "validation_error",
                     message: error.issues[0].message,
-                    code: "validation_failed",
                 });
             }
 
             const { sessionId } = await authService.signIn({
                 ...data,
-                userAgent: req.headers["user-agent"] || "unknown",
-                ipAddress: normalizedIP(req.ip || "unknown"),
+                ipAddress: normalizedIP(req.ip ?? "unknown"),
+                userAgent: req.headers["user-agent"] ?? "unknown",
             });
 
-            res.cookie("__session_id", sessionId, {
-                secure: IS_PROD,
+            res.cookie(COOKIES.session_id, sessionId, {
                 httpOnly: true,
-                sameSite: "lax",
                 maxAge: SESSION_EXPIRY * 1000,
+                sameSite: "lax",
+                secure: IS_PROD,
             }).json({ success: true });
         }
     ),

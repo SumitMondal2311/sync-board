@@ -1,15 +1,18 @@
 import { prisma, Session } from "@repo/database";
+
 import { APIError } from "../../helpers/api-error.js";
 
 export const sessionService = {
-    // ----- Get Active Sessions List Service ----- //
+    // ----------------------------------------
+    // List Active Sessions
+    // ----------------------------------------
 
-    getActiveList: async (
+    listActive: async (
         userId: string
     ): Promise<{
-        sessions: Pick<Session, "userAgent" | "ipAddress" | "id" | "lastActiveAt">[];
+        activeSessions: Pick<Session, "userAgent" | "ipAddress" | "id" | "lastActiveAt">[];
     }> => {
-        const sessionRecords = await prisma.session.findMany({
+        const activeSessions = await prisma.session.findMany({
             where: {
                 expiresAt: { gt: new Date() },
                 userId,
@@ -22,10 +25,12 @@ export const sessionService = {
             },
         });
 
-        return { sessions: sessionRecords };
+        return { activeSessions };
     },
 
-    // ----- Delete Session Service ----- //
+    // ----------------------------------------
+    // Delete Session
+    // ----------------------------------------
 
     delete: async ({ sessionId, userId }: { userId: string; sessionId: string }): Promise<void> => {
         const { count } = await prisma.session.deleteMany({
@@ -34,8 +39,8 @@ export const sessionService = {
 
         if (count <= 0) {
             throw new APIError(404, {
-                message: `No session was found with id '${sessionId}'`,
                 code: "resource_not_found",
+                message: "Session not found.",
             });
         }
     },

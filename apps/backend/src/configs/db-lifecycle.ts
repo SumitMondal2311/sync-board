@@ -1,5 +1,6 @@
-import { prisma } from "@repo/database";
 import { setTimeout } from "timers/promises";
+
+import { prisma } from "@repo/database";
 import { MAX_DB_RECONNECTION_ATTEMPTS } from "./constants.js";
 
 export const connectDB = async () => {

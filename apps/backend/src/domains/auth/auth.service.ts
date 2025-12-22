@@ -2,6 +2,7 @@ import { prisma } from "@repo/database";
 import { hash, verify } from "argon2";
 import chalk from "chalk";
 import { v7 as uuidv7 } from "uuid";
+
 import {
     IS_PROD,
     MAX_ACTIVE_SESSIONS,
@@ -9,34 +10,42 @@ import {
     SESSION_EXPIRY,
     VERIFICATION_CODE_EXPIRY,
 } from "../../configs/constants.js";
+
 import { addSecondsToNow } from "../../helpers/add-seconds-to-now.js";
 import { APIError } from "../../helpers/api-error.js";
 import { generateOtp } from "../../helpers/generate-otp.js";
 import { generateToken } from "../../helpers/generate-token.js";
 
 export const authService = {
-    // ----- Sign Up Service ----- //
+    // ----------------------------------------
+    // Sign Up
+    // ----------------------------------------
 
     signUp: async ({
-        password,
+        firstName,
+        lastName,
         email,
+        password,
     }: {
+        firstName: string;
+        lastName?: string;
         email: string;
         password: string;
     }): Promise<{ token: string }> => {
-        const userRecord = await prisma.user.findFirst({
+        const user = await prisma.user.findFirst({
             where: { email, verified: true },
         });
 
-        if (userRecord) {
-            // for preventing user enumeration
+        if (user) {
             const { token } = await prisma.signUpAttempt.create({
                 data: {
-                    expiresAt: addSecondsToNow(VERIFICATION_CODE_EXPIRY),
-                    token: generateToken(16),
+                    firstName,
+                    lastName,
                     email,
-                    passwordHash: await hash(password),
-                    verificationCodeHash: await hash(generateToken(128)), // almost never guesable code
+                    passwordHash: await hash("dummy-password"),
+                    verificationCodeHash: await hash("dummy-code"),
+                    token: generateToken(16),
+                    expiresAt: addSecondsToNow(VERIFICATION_CODE_EXPIRY),
                 },
                 select: { token: true },
             });
@@ -47,11 +56,15 @@ export const authService = {
         const { rawOtp, hashedOtp } = generateOtp(6);
         const { token } = await prisma.signUpAttempt.create({
             data: {
-                expiresAt: addSecondsToNow(VERIFICATION_CODE_EXPIRY),
-                token: generateToken(16),
+                firstName,
+                ...(lastName && {
+                    lastName,
+                }),
                 email,
-                verificationCodeHash: await hashedOtp,
                 passwordHash: await hash(password),
+                verificationCodeHash: await hashedOtp,
+                token: generateToken(16),
+                expiresAt: addSecondsToNow(VERIFICATION_CODE_EXPIRY),
             },
             select: { token: true },
         });
@@ -63,25 +76,49 @@ export const authService = {
         return { token };
     },
 
-    // ----- Verify Sign Up Service ----- //
+    // ----------------------------------------
+    // Prepare Verify Email
+    // ----------------------------------------
 
-    verifySignUp: async ({
-        signUpAttemptToken,
+    prepareVerifyEmail: async (token: string): Promise<{ email: string }> => {
+        const signUpAttemptRecord = await prisma.signUpAttempt.findUnique({
+            where: { token },
+            select: { email: true },
+        });
+
+        if (!signUpAttemptRecord) {
+            throw new APIError(404, {
+                code: "resource_not_found",
+                message: "No sign up attempt was found.",
+            });
+        }
+
+        return { email: signUpAttemptRecord.email };
+    },
+
+    // ----------------------------------------
+    // Attempt Verify Email
+    // ----------------------------------------
+
+    attemptVerifyEmail: async ({
+        token,
         code,
         ipAddress,
         userAgent,
     }: {
+        token: string;
+        code: string;
         ipAddress: string;
         userAgent: string;
-        code: string;
-        signUpAttemptToken: string;
     }): Promise<{ sessionId: string }> => {
         const signUpAttemptRecord = await prisma.signUpAttempt.findUnique({
-            where: { token: signUpAttemptToken },
+            where: { token },
             select: {
+                attempts: true,
+                firstName: true,
+                lastName: true,
                 email: true,
                 passwordHash: true,
-                attempts: true,
                 verificationCodeHash: true,
                 expiresAt: true,
             },
@@ -89,38 +126,38 @@ export const authService = {
 
         if (!signUpAttemptRecord) {
             throw new APIError(404, {
-                message: "No sign up attempt was found. Please go back and try again.",
-                code: "sign_up_attempt_not_found",
+                code: "resource_not_found",
+                message: "No sign-up attempt was found.",
             });
         }
 
-        if (new Date() >= signUpAttemptRecord.expiresAt) {
-            throw new APIError(410, {
-                message: "This sign up attempt has expired. Please go back and try again.",
-                code: "sign_up_attempt_expired",
+        const { firstName, lastName, email, passwordHash, verificationCodeHash, expiresAt } =
+            signUpAttemptRecord;
+        if (new Date() >= expiresAt) {
+            throw new APIError(400, {
+                code: "resource_expired",
+                message: "Sign-up attempt has already expired.",
             });
         }
-
-        const { email, passwordHash, verificationCodeHash } = signUpAttemptRecord;
 
         if (signUpAttemptRecord.attempts >= MAX_VERIFICATION_CODE_ATTEMPTS) {
             throw new APIError(403, {
-                message: "Too many failed attempts. Please go back and try again.",
-                code: "forbidden_sign_up_attempt",
+                code: "too_many_attempts",
+                message: "Too many failed verification attempts.",
             });
         }
 
-        await prisma.signUpAttempt.update({
-            where: { token: signUpAttemptToken },
-            data: {
-                attempts: { increment: 1 },
-            },
-        });
-
         if ((await verify(verificationCodeHash, code)) === false) {
+            await prisma.signUpAttempt.update({
+                where: { token },
+                data: {
+                    attempts: { increment: 1 },
+                },
+            });
+
             throw new APIError(422, {
-                message: "Entered code is incorrect",
                 code: "invalid_code",
+                message: "Entered code is incorrect.",
             });
         }
 
@@ -135,9 +172,13 @@ export const authService = {
             const user = await tx.user.create({
                 data: {
                     id: uuidv7(),
+                    firstName,
+                    ...(lastName && {
+                        lastName,
+                    }),
                     email,
-                    passwordHash,
                     passwordEnabled: true,
+                    passwordHash,
                     verified: true,
                     workspaceMemberships: {
                         create: {
@@ -167,47 +208,46 @@ export const authService = {
         return { sessionId };
     },
 
-    // ----- Sign In Service ----- //
+    // ----------------------------------------
+    // Sign In
+    // ----------------------------------------
 
     signIn: async ({
-        ipAddress,
-        userAgent,
         email,
         password,
+        ipAddress,
+        userAgent,
     }: {
-        password: string;
         email: string;
+        password: string;
         ipAddress: string;
         userAgent: string;
     }): Promise<{ sessionId: string }> => {
-        const userRecord = await prisma.user.findFirst({
+        const user = await prisma.user.findFirst({
             where: { email, verified: true },
             select: { id: true, passwordHash: true },
         });
 
         const dummyPasswordHash = await hash("dummy-password");
-        if (!userRecord) {
-            await verify(dummyPasswordHash, password); // for preventing timing attacks
+        if (!user) {
+            await verify(dummyPasswordHash, password);
             throw new APIError(422, {
+                code: "invalid_credentials",
                 message: "Incorrect email or password",
-                code: "invalid_credential",
             });
         }
 
-        if ((await verify(userRecord.passwordHash, password)) === false) {
+        if ((await verify(user.passwordHash, password)) === false) {
             throw new APIError(422, {
+                code: "invalid_credentials",
                 message: "Incorrect email or password",
-                code: "invalid_credential",
             });
         }
 
-        const { id: userId } = userRecord;
-
-        // LRU based session deletion for reaching max limit
         const sessionRecords = await prisma.session.findMany({
             where: {
                 expiresAt: { gt: new Date() },
-                userId,
+                userId: user.id,
             },
             orderBy: { lastActiveAt: "asc" },
             select: { id: true },
@@ -221,7 +261,7 @@ export const authService = {
 
         const { id: sessionId } = await prisma.$transaction(async (tx) => {
             await tx.user.update({
-                where: { id: userId },
+                where: { id: user.id },
                 data: { lastSignInAt: new Date() },
                 select: { id: true },
             });
@@ -231,7 +271,7 @@ export const authService = {
                     ipAddress,
                     userAgent,
                     expiresAt: addSecondsToNow(SESSION_EXPIRY),
-                    user: { connect: { id: userId } },
+                    user: { connect: { id: user.id } },
                 },
                 select: { id: true },
             });

@@ -255,7 +255,7 @@ function SidebarTrigger({ onClick, ...props }: React.ComponentProps<typeof Butto
                     data-sidebar="trigger"
                     data-slot="sidebar-trigger"
                     variant="secondary"
-                    size="icon"
+                    size="icon-sm"
                     onClick={(event) => {
                         onClick?.(event);
                         toggleSidebar();

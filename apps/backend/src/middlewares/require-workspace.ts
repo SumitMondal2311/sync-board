@@ -1,5 +1,6 @@
 import { prisma } from "@repo/database";
-import { WorkspacePolicy } from "@repo/types";
+import { HEADERS, WorkspacePolicy } from "@repo/types";
+
 import { APIError } from "../helpers/api-error.js";
 import { asyncHandler } from "../helpers/async-handler.js";
 import { RequireAuthRequest, RequireWorkspaceRequest } from "../types/custom-request.js";
@@ -8,22 +9,24 @@ export const requireWorkspaceMiddleware = asyncHandler(
     async (
         req: RequireAuthRequest &
             RequireWorkspaceRequest & {
-                headers: { "x-workspace-id"?: string };
+                headers: {
+                    [HEADERS.workspace_id]?: string;
+                };
             },
         _,
         next
     ) => {
-        const workspaceId = req.headers["x-workspace-id"];
+        const workspaceId = req.headers[HEADERS.workspace_id];
         if (!workspaceId) {
             throw new APIError(400, {
-                message: "Missing 'x-workspace-id' header.",
                 code: "missing_header",
+                message: "Required workspace context.",
             });
         }
 
         const { user } = req.session;
 
-        const workspaceMembershipRecord = await prisma.workspaceMembership.findUnique({
+        const membership = await prisma.workspaceMembership.findUnique({
             where: {
                 userId_workspaceId: {
                     userId: user.id,
@@ -38,26 +41,24 @@ export const requireWorkspaceMiddleware = asyncHandler(
             },
         });
 
-        if (!workspaceMembershipRecord) {
+        if (!membership) {
             throw new APIError(403, {
-                message: "Current user does not belong to the requested workspace.",
-                code: "forbidden_workspace_access",
+                code: "forbidden",
+                message: "Action not permitted.",
             });
         }
 
         const {
             workspace: { strictMode },
             role,
-        } = workspaceMembershipRecord;
+        } = membership;
 
-        const workspacePolicy = new WorkspacePolicy({
+        req.activeWorkspaceId = workspaceId;
+        req.workspacePolicy = new WorkspacePolicy({
             strictMode,
             role,
             userId: user.id,
         });
-
-        req.activeWorkspaceId = workspaceId;
-        req.workspacePolicy = workspacePolicy;
 
         next();
     }

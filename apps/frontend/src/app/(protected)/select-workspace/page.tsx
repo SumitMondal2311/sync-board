@@ -1,4 +1,4 @@
-import { WorkspaceSelector } from "@/app/(protected)/select-workspace/_components/workspace-selector";
+import { WorkspaceSelector } from "@/features/workspace/components/workspace-selector";
 
 export default function Page() {
     return (

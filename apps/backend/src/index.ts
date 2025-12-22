@@ -3,6 +3,7 @@ import cors from "cors";
 import express, { Express, NextFunction, Request, Response } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
+
 import { connectDB, disconnectDB } from "./configs/db-lifecycle.js";
 import { env } from "./configs/env.js";
 import { authRouter } from "./domains/auth/auth.route.js";
@@ -12,8 +13,6 @@ import { meRouter } from "./domains/me/me.route.js";
 import { sessionRouter } from "./domains/session/session.route.js";
 import { taskRouter } from "./domains/task/task.route.js";
 import { APIError } from "./helpers/api-error.js";
-import { requireAuthMiddleware } from "./middlewares/require-auth.js";
-import { requireWorkspaceMiddleware } from "./middlewares/require-workspace.js";
 
 const app: Express = express();
 
@@ -27,20 +26,18 @@ app.use(morgan("dev"));
 app.use((err: Error, _req: Request, _res: Response, next: NextFunction) => {
     if ("body" in err) {
         throw new APIError(400, {
-            message: "Request body must be valid JSON object",
             code: "invalid_json_body",
+            message: "Request body must be valid JSON object.",
         });
     }
 
     next();
 });
 
-// api endpoints
+// API endpoints
 app.use("/api/v1/auth", authRouter);
-app.use(requireAuthMiddleware);
 app.use("/api/v1/me/sessions", sessionRouter);
 app.use("/api/v1/me", meRouter);
-app.use(requireWorkspaceMiddleware);
 app.use("/api/v1/me/boards", boardRouter);
 app.use("/api/v1/me/lists", listRouter);
 app.use("/api/v1/me/tasks", taskRouter);

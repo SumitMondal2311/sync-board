@@ -1,5 +1,6 @@
-import { config } from "@repo/eslint-config";
 import globals from "globals";
+
+import { config } from "@repo/eslint-config";
 
 export default [
     ...config,

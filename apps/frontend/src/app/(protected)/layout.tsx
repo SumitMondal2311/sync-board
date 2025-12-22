@@ -1,5 +1,7 @@
-import { SessionProvider } from "./_components/session-provider";
+import * as React from "react";
+
+import { WorkspaceResolver } from "@/features/workspace/components/workspace-resolver";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-    return <SessionProvider>{children}</SessionProvider>;
+    return <WorkspaceResolver>{children}</WorkspaceResolver>;
 }

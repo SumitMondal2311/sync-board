@@ -1,64 +1,56 @@
-import {
-    CreateBoardAPISuccessResponse,
-    GetAllBoardsAPISuccessResponse,
-    TitleSchema,
-} from "@repo/types";
-import { titleSchema } from "@repo/validation";
+import { CreateBoardResponse, CreateBoardSchema, GetBoardsResponse } from "@repo/types";
+import { createBoardSchema } from "@repo/validation";
 import { Response } from "express";
+
 import { APIError } from "../../helpers/api-error.js";
 import { asyncHandler } from "../../helpers/async-handler.js";
 import { RequireAuthRequest, RequireWorkspaceRequest } from "../../types/custom-request.js";
 import { boardService } from "./board.service.js";
 
 export const boardController = {
-    // ----- Create Board Controller ----- //
+    // ----------------------------------------
+    // Create Board
+    // ----------------------------------------
 
     create: asyncHandler(
         async (
             req: RequireAuthRequest &
                 RequireWorkspaceRequest & {
-                    body: TitleSchema;
+                    body: CreateBoardSchema;
                 },
-            res: Response<{
-                board: CreateBoardAPISuccessResponse;
-            }>
+            res: Response<CreateBoardResponse>
         ) => {
-            if (!req.workspacePolicy.canCreateBoards()) {
-                throw new APIError(403, {
-                    message: "Current user is not allowed to perform this action.",
-                    code: "forbidden_board_creation",
-                });
-            }
-
-            const { success, error, data } = titleSchema.safeParse(req.body);
+            const { success, error, data } = createBoardSchema.safeParse(req.body);
             if (!success) {
                 throw new APIError(400, {
+                    code: "validation_error",
                     message: error.issues[0].message,
-                    code: "validation_failed",
                 });
             }
 
-            const { id: userId, email } = req.session.user;
+            if (!req.workspacePolicy.canCreateBoards()) {
+                throw new APIError(403, {
+                    code: "forbidden",
+                    message: "Current user is not allowed to perform this action.",
+                });
+            }
+
             const { board } = await boardService.create({
-                userId,
-                email,
+                userId: req.session.user.id,
                 workspaceId: req.activeWorkspaceId,
                 ...data,
             });
 
-            res.status(201).json({ board });
+            res.status(201).json(board);
         }
     ),
 
-    // ----- Get Boards Controller ----- //
+    // ----------------------------------------
+    // Get All Board
+    // ----------------------------------------
 
-    getList: asyncHandler(
-        async (
-            req: RequireWorkspaceRequest,
-            res: Response<{ boards: GetAllBoardsAPISuccessResponse }>
-        ) => {
-            const { boards } = await boardService.getList(req.activeWorkspaceId);
-            res.status(200).json({ boards });
-        }
-    ),
+    getAll: asyncHandler(async (req: RequireWorkspaceRequest, res: Response<GetBoardsResponse>) => {
+        const { boards } = await boardService.getAll(req.activeWorkspaceId);
+        res.status(200).json(boards);
+    }),
 };

@@ -1,6 +1,7 @@
+import { COOKIES } from "@repo/types";
 import { NextRequest, NextResponse } from "next/server";
 
-const AUTH_ROUTES = ["/sign-up", "/sign-in"];
+const AUTH_ROUTES = ["/sign-up", "/email-verification", "/sign-in"];
 const PROTECTED_ROUTES = [
     "/select-workspace",
     "/dashboard/boards",
@@ -19,8 +20,7 @@ export default function proxy(request: NextRequest) {
         return NextResponse.redirect(new URL("/sign-in", request.url));
     }
 
-    const isAuthenticated = request.cookies.get("__session_id");
-
+    const isAuthenticated = request.cookies.get(COOKIES.session_id);
     if (isAuthenticated) {
         if (AUTH_ROUTES.some((route) => route === pathname)) {
             return NextResponse.redirect(new URL("/dashboard/boards", request.url));

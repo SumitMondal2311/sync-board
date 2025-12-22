@@ -1,14 +1,10 @@
-import { GetAllBoardsAPISuccessResponse, WorkspaceAPIContext } from "@repo/types";
+import { Workspace } from "@/types/workspace";
 import { create } from "zustand";
 
 export const workspaceStore = create<{
-    activeWorkspace: WorkspaceAPIContext | null;
-    setActiveWorkspace: (workspace: WorkspaceAPIContext | null) => void;
-    boards: GetAllBoardsAPISuccessResponse;
-    setBoards: (boards: GetAllBoardsAPISuccessResponse) => void;
+    activeWorkspace: Workspace | null;
+    setActiveWorkspace: (ws: Workspace | null) => void;
 }>((set) => ({
     activeWorkspace: null,
-    setActiveWorkspace: (workspace) => set({ activeWorkspace: workspace }),
-    boards: [],
-    setBoards: (boards) => set({ boards }),
+    setActiveWorkspace: (ws) => set({ activeWorkspace: ws }),
 }));

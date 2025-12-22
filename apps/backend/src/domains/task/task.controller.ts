@@ -1,5 +1,6 @@
-import { TaskSchema } from "@repo/types";
-import { taskSchema } from "@repo/validation";
+import { CreateTaskSchema, QUERY_PARAMS } from "@repo/types";
+import { createTaskSchema } from "@repo/validation";
+
 import { APIError } from "../../helpers/api-error.js";
 import { asyncHandler } from "../../helpers/async-handler.js";
 import { RequireAuthRequest, RequireWorkspaceRequest } from "../../types/custom-request.js";
@@ -10,42 +11,44 @@ export const taskController = {
         async (
             req: RequireAuthRequest &
                 RequireWorkspaceRequest & {
-                    query: { board_id?: string; list_id?: string };
-                    body: TaskSchema;
+                    query: {
+                        [QUERY_PARAMS.board_id]?: string;
+                        [QUERY_PARAMS.list_id]?: string;
+                    };
+                    body: CreateTaskSchema;
                 },
             res
         ) => {
-            if (!req.workspacePolicy.canCreateTasks()) {
-                throw new APIError(403, {
-                    message: "Current user is not allowed to perform this action.",
-                    code: "forbidden_task_creation",
-                });
-            }
-
-            const { board_id, list_id } = req.query;
-            if (!board_id || !list_id) {
-                throw new APIError(400, {
-                    message: "Missing either of 'board_id' or 'list_id' param.",
-                    code: "missing_query_param",
-                });
-            }
-
-            const { success, error, data } = taskSchema.safeParse(req.body);
+            const { success, error, data } = createTaskSchema.safeParse(req.body);
             if (!success) {
                 throw new APIError(400, {
+                    code: "validation_error",
                     message: error.issues[0].message,
-                    code: "validation_failed",
                 });
             }
 
-            const { id: userId, email } = req.session.user;
+            const boardId = req.query[QUERY_PARAMS.board_id];
+            const listId = req.query[QUERY_PARAMS.list_id];
+            if (!boardId || !listId) {
+                throw new APIError(400, {
+                    code: "missing_parameter",
+                    message: "Required parameter is missing.",
+                });
+            }
+
+            if (!req.workspacePolicy.canCreateTasks()) {
+                throw new APIError(403, {
+                    code: "forbidden",
+                    message: "Action not permitted.",
+                });
+            }
+
             await taskService.create({
-                userId,
-                email,
-                input: data,
-                boardId: board_id,
-                listId: list_id,
                 workspaceId: req.activeWorkspaceId,
+                listId,
+                boardId,
+                userId: req.session.user.id,
+                ...data,
             });
 
             res.status(201).json({ success: true });

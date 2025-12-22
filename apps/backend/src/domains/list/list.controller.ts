@@ -1,86 +1,89 @@
-import {
-    CreateListAPISuccessResponse,
-    GetAllListsAPISuccessResponse,
-    TitleSchema,
-} from "@repo/types";
-import { titleSchema } from "@repo/validation";
+import { CreateListResponse, CreateListSchema, GetListsResponse, QUERY_PARAMS } from "@repo/types";
+import { createListSchema } from "@repo/validation";
 import { Response } from "express";
+
 import { APIError } from "../../helpers/api-error.js";
 import { asyncHandler } from "../../helpers/async-handler.js";
 import { RequireAuthRequest, RequireWorkspaceRequest } from "../../types/custom-request.js";
 import { listService } from "./list.service.js";
 
 export const listController = {
-    // ----- Create List Controller ----- //
+    // ----------------------------------------
+    // Create List
+    // ----------------------------------------
 
     create: asyncHandler(
         async (
             req: RequireAuthRequest &
                 RequireWorkspaceRequest & {
-                    body: TitleSchema;
-                    query: { board_id?: string };
+                    body: CreateListSchema;
+                    query: {
+                        [QUERY_PARAMS.board_id]?: string;
+                    };
                 },
-            res: Response<{ list: CreateListAPISuccessResponse }>
+            res: Response<CreateListResponse>
         ) => {
-            const { workspacePolicy, query, body, session, activeWorkspaceId } = req;
-            if (!workspacePolicy.canCreateLists()) {
-                throw new APIError(403, {
-                    message: "Current user is not allowed to perform this action.",
-                    code: "forbidden_list_creation",
-                });
-            }
-
-            const { board_id } = query;
-            if (!board_id) {
-                throw new APIError(400, {
-                    message: "Missing 'board_id' param.",
-                    code: "missing_query_param",
-                });
-            }
-
-            const { success, error, data } = titleSchema.safeParse(body);
+            const { success, error, data } = createListSchema.safeParse(req.body);
             if (!success) {
                 throw new APIError(400, {
+                    code: "validation_error",
                     message: error.issues[0].message,
-                    code: "validation_failed",
                 });
             }
 
-            const { id: userId, email } = session.user;
+            const boardId = req.query[QUERY_PARAMS.board_id];
+            if (!boardId) {
+                throw new APIError(400, {
+                    code: "missing_parameter",
+                    message: "Required parameter is missing.",
+                });
+            }
+
+            if (!req.workspacePolicy.canCreateLists()) {
+                throw new APIError(403, {
+                    code: "forbidden",
+                    message: "Action not permitted.",
+                });
+            }
+
             const { list } = await listService.create({
-                userId,
-                email,
-                boardId: board_id,
-                workspaceId: activeWorkspaceId,
+                userId: req.session.user.id,
+                workspaceId: req.activeWorkspaceId,
+                boardId,
                 ...data,
             });
 
-            res.status(201).json({ list });
+            res.status(201).json(list);
         }
     ),
 
-    // ----- Get Lists Controller ----- //
+    // ----------------------------------------
+    // Get All List
+    // ----------------------------------------
 
     getList: asyncHandler(
         async (
             req: RequireWorkspaceRequest & {
-                query: { board_id?: string };
+                query: {
+                    [QUERY_PARAMS.board_id]?: string;
+                };
             },
-            res: Response<{ lists: GetAllListsAPISuccessResponse }>
+            res: Response<GetListsResponse>
         ) => {
-            const { board_id } = req.query;
-            if (!board_id) {
+            const boardId = req.query[QUERY_PARAMS.board_id];
+            if (!boardId) {
                 throw new APIError(400, {
-                    message: "Missing 'board_id' param.",
-                    code: "missing_query_param",
+                    code: "missing_parameter",
+                    message: "Required parameter is missing.",
                 });
             }
 
-            const { lists } = await listService.getList({
-                boardId: board_id,
+            const { lists } = await listService.getAll({
                 workspaceId: req.activeWorkspaceId,
+                boardId,
             });
-            res.status(200).json({ lists });
+
+            res.json(lists);
         }
     ),
 };
