@@ -1,10 +1,10 @@
-import { CreateBoardResponse, CreateBoardSchema, GetBoardsResponse } from "@repo/types";
+import { CreateBoardResponse, CreateBoardSchema, GetBoardsResponse } from "@repo/types/api";
 import { createBoardSchema } from "@repo/validation";
 import { Response } from "express";
 
-import { APIError } from "../../helpers/api-error.js";
-import { asyncHandler } from "../../helpers/async-handler.js";
-import { RequireAuthRequest, RequireWorkspaceRequest } from "../../types/custom-request.js";
+import { APIError } from "@/helpers/api-error.js";
+import { asyncHandler } from "@/helpers/async-handler.js";
+import { RequireAuthRequest, RequireWorkspaceRequest } from "@/types/custom-request.js";
 import { boardService } from "./board.service.js";
 
 export const boardController = {

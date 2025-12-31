@@ -1,19 +1,20 @@
 import {
-    COOKIES,
     PrepareVerifyEmailResponse,
     SignInSchema,
     SignUpSchema,
     VerifyEmailSchema,
-} from "@repo/types";
+} from "@repo/types/api";
 
+import { COOKIES } from "@repo/types/constants";
 import { signInSchema, signUpSchema, verifyEmailSchema } from "@repo/validation";
 import { Request, Response } from "express";
 
-import { IS_PROD, SESSION_EXPIRY, VERIFICATION_CODE_EXPIRY } from "../../configs/constants.js";
-import { APIError } from "../../helpers/api-error.js";
-import { asyncHandler } from "../../helpers/async-handler.js";
-import { normalizedIP } from "../../helpers/normalized-ip.js";
-import { authService } from "./auth.service.js";
+import { SESSION_EXPIRY, VERIFICATION_CODE_EXPIRY } from "@/configs/constants";
+import { env } from "@/configs/env";
+import { APIError } from "@/helpers/api-error";
+import { asyncHandler } from "@/helpers/async-handler";
+import { normalizedIP } from "@/helpers/normalized-ip";
+import { authService } from "./auth.service";
 
 export const authController = {
     // ----------------------------------------
@@ -42,7 +43,7 @@ export const authController = {
                     httpOnly: true,
                     maxAge: VERIFICATION_CODE_EXPIRY * 1000,
                     sameSite: "lax",
-                    secure: IS_PROD,
+                    secure: env.isProd,
                 })
                 .json({ success: true });
         }
@@ -123,13 +124,13 @@ export const authController = {
                 httpOnly: true,
                 maxAge: 0,
                 sameSite: "lax",
-                secure: IS_PROD,
+                secure: env.isProd,
             })
                 .cookie(COOKIES.session_id, sessionId, {
                     httpOnly: true,
                     maxAge: SESSION_EXPIRY * 1000,
                     sameSite: "lax",
-                    secure: IS_PROD,
+                    secure: env.isProd,
                 })
                 .json({ success: true });
         }
@@ -164,7 +165,7 @@ export const authController = {
                 httpOnly: true,
                 maxAge: SESSION_EXPIRY * 1000,
                 sameSite: "lax",
-                secure: IS_PROD,
+                secure: env.isProd,
             }).json({ success: true });
         }
     ),

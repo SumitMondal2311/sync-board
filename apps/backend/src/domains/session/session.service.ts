@@ -1,6 +1,6 @@
 import { prisma, Session } from "@repo/database";
 
-import { APIError } from "../../helpers/api-error.js";
+import { APIError } from "@/helpers/api-error.js";
 
 export const sessionService = {
     // ----------------------------------------

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 
-import { APIError } from "../helpers/api-error.js";
+import { APIError } from "@/helpers/api-error.js";
 
 export const requireBodyMiddleware = (req: Request, _res: Response, next: NextFunction): void => {
     const contentType = req.headers["content-type"];

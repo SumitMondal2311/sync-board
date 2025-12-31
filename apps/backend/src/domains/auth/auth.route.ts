@@ -1,7 +1,7 @@
 import { Router } from "express";
 
-import { requireBodyMiddleware } from "../../middlewares/require-body.js";
-import { authController } from "./auth.controller.js";
+import { requireBodyMiddleware } from "@/middlewares/require-body";
+import { authController } from "./auth.controller";
 
 export const authRouter: Router = Router();
 authRouter.post("/sign-up", requireBodyMiddleware, authController.signUp);

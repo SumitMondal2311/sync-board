@@ -1,18 +1,20 @@
+import { prisma } from "@repo/database";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Express, NextFunction, Request, Response } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
+import { setTimeout } from "timers/promises";
 
-import { connectDB, disconnectDB } from "./configs/db-lifecycle.js";
-import { env } from "./configs/env.js";
-import { authRouter } from "./domains/auth/auth.route.js";
-import { boardRouter } from "./domains/board/board.route.js";
-import { listRouter } from "./domains/list/list.route.js";
-import { meRouter } from "./domains/me/me.route.js";
-import { sessionRouter } from "./domains/session/session.route.js";
-import { taskRouter } from "./domains/task/task.route.js";
-import { APIError } from "./helpers/api-error.js";
+import { MAX_DB_RECONNECTION_ATTEMPTS } from "@/configs/constants";
+import { env } from "@/configs/env";
+import { authRouter } from "@/domains/auth/auth.route";
+import { boardRouter } from "@/domains/board/board.route";
+import { listRouter } from "@/domains/list/list.route";
+import { meRouter } from "@/domains/me/me.route";
+import { sessionRouter } from "@/domains/session/session.route";
+import { taskRouter } from "@/domains/task/task.route";
+import { APIError } from "@/helpers/api-error";
 
 const app: Express = express();
 
@@ -44,22 +46,47 @@ app.use("/api/v1/me/tasks", taskRouter);
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof APIError) {
-        console.info(err.message);
+        console.log(err.message);
         return res.status(err.statusCode).json({
             ...err.toJSON(),
         });
     }
 
-    console.info(err);
+    console.log(err);
     res.status(500).json({
         message: "Internal server error: something went wrong",
     });
 });
 
 try {
-    await connectDB();
+    void (async () => {
+        try {
+            await prisma.$connect();
+            console.log("✅ Connected to the DB successfully");
+        } catch (error) {
+            console.warn("❗️ Failed to connect the DB", error);
+            for (let attempt = 1; attempt <= MAX_DB_RECONNECTION_ATTEMPTS; attempt++) {
+                try {
+                    await prisma.$connect();
+                    console.log("✅ Reconnected to DB");
+                    return;
+                } catch (error) {
+                    console.error(`❗️ Failed reconnecting to DB on attempt ${attempt}`, error);
+                    if (attempt < MAX_DB_RECONNECTION_ATTEMPTS) {
+                        const wait = 2 ** attempt * 1000;
+                        console.log(`🔁 Retrying in ${wait / 1000}s...`);
+                        await setTimeout(wait);
+                    }
+                }
+            }
+
+            console.error("❎ Failed to connect DB after multiple retries");
+            process.exit(1);
+        }
+    })();
+
     const server = app.listen(env.PORT, () => {
-        console.info(`✅ Server is ready on port: ${env.PORT}`);
+        console.log(`✅ Server is ready on port: ${env.PORT}`);
     });
 
     let shuttingDown = false;
@@ -69,28 +96,32 @@ try {
             if (shuttingDown) return;
             shuttingDown = true;
 
-            console.info(`⚠️  Received ${signal}, shutting down server...`);
+            console.warn(`❗️ Received ${signal}, shutting down server...`);
             server.close(
-                () =>
-                    void (async () => {
-                        console.info("✅ Server closed gracefully");
-                        await disconnectDB();
-                        process.exit(0);
-                    })()
+                void (async () => {
+                    console.log("✅ Server closed gracefully");
+                    try {
+                        await prisma.$disconnect();
+                        console.log("✅ Databse disconnected successfully");
+                    } catch (_) {
+                        console.warn("❗️ Failed to disconnect DB");
+                    }
+                    process.exit(0);
+                })()
             );
         })
     );
 } catch (error) {
-    console.info("❎ Failed to initialize the http server", error);
+    console.log("❎ Failed to initialize the http server", error);
     process.exit(1);
 }
 
 process.on("uncaughtException", (error: Error) => {
-    console.info(`❎ Uncaught Exception ${error.stack}`);
+    console.log(`❎ Uncaught Exception ${error.stack}`);
     process.exit(1);
 });
 
 process.on("unhandledRejection", (error: Error) => {
-    console.info(`❎ Unhandled Rejected ${error.stack}`);
+    console.log(`❎ Unhandled Rejected ${error.stack}`);
     process.exit(1);
 });

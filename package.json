@@ -2,21 +2,19 @@
     "name": "sync-board",
     "private": true,
     "scripts": {
+        "backend:build": "turbo build -F backend",
+        "backend:dev": "turbo dev -F backend",
+        "backend:start": "turbo start -F backend",
         "build": "turbo build",
-        "build:apps": "turbo build -F frontend",
-        "build:pkgs": "turbo build -F @repo/**",
         "check-types": "turbo check-types",
-        "clean": "rimraf **/*/dist",
-        "db:deploy": "dotenv -e apps/backend/.env -- pnpm -F @repo/database db:deploy",
-        "db:generate": "dotenv -e apps/backend/.env -- pnpm -F @repo/database db:generate",
-        "db:migrate": "dotenv -e apps/backend/.env -- pnpm -F @repo/database db:migrate",
-        "db:push": "dotenv -e apps/backend/.env -- pnpm -F @repo/database db:push",
-        "db:reset": "dotenv -e apps/backend/.env -- pnpm -F @repo/database db:reset",
-        "db:studio": "dotenv -e apps/backend/.env -- pnpm -F @repo/database db:studio",
+        "clean": "rm -rf **/*/dist",
         "dev": "turbo dev",
         "docker:down": "docker-compose down",
         "docker:up": "docker-compose up",
         "format": "prettier --write **/*.{json,js,mjs,ts,jsx,tsx}",
+        "frontend:build": "turbo build -F frontend",
+        "frontend:dev": "turbo dev -F frontend",
+        "frontend:start": "turbo start -F frontend",
         "lint": "turbo lint",
         "prepare": "husky",
         "start": "turbo start"
@@ -25,12 +23,10 @@
         "**/*.{json,js,mjs,ts,jsx,tsx}": "prettier --write"
     },
     "dependencies": {
-        "dotenv": "^17.2.3",
-        "zod": "^4.2.1"
+        "zod": "4.3.2"
     },
     "devDependencies": {
-        "@types/node": "^25.0.3",
-        "dotenv-cli": "^11.0.0",
+        "@types/node": "20.19.6",
         "eslint": "^9.39.2",
         "globals": "^16.5.0",
         "husky": "^9.1.7",
@@ -38,17 +34,11 @@
         "prettier": "^3.7.4",
         "prettier-plugin-packagejson": "^2.5.20",
         "prettier-plugin-tailwindcss": "^0.7.2",
-        "rimraf": "^6.1.2",
-        "turbo": "^2.7.0",
+        "turbo": "^2.7.2",
         "typescript": "^5.9.3"
     },
-    "packageManager": "pnpm@10.21.0",
+    "packageManager": "pnpm@10.26.2",
     "engines": {
-        "node": ">=18"
-    },
-    "pnpm": {
-        "overrides": {
-            "zod": "4.2.1"
-        }
+        "node": ">=20 <21"
     }
 }

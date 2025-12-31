@@ -1,4 +1,4 @@
-import { COOKIES } from "@repo/types";
+import { COOKIES } from "@repo/types/constants";
 import { NextRequest, NextResponse } from "next/server";
 
 const AUTH_ROUTES = ["/sign-up", "/email-verification", "/sign-in"];

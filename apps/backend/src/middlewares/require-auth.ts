@@ -1,11 +1,12 @@
 import { prisma } from "@repo/database";
-import { COOKIES } from "@repo/types";
+import { COOKIES } from "@repo/types/constants";
 
-import { IS_PROD, SESSION_EXPIRY } from "../configs/constants.js";
-import { addSecondsToNow } from "../helpers/add-seconds-to-now.js";
-import { APIError } from "../helpers/api-error.js";
-import { asyncHandler } from "../helpers/async-handler.js";
-import { RequireAuthRequest } from "../types/custom-request.js";
+import { SESSION_EXPIRY } from "@/configs/constants";
+import { env } from "@/configs/env";
+import { addSecondsToNow } from "@/helpers/add-seconds-to-now";
+import { APIError } from "@/helpers/api-error";
+import { asyncHandler } from "@/helpers/async-handler";
+import { RequireAuthRequest } from "@/types/custom-request";
 
 export const requireAuthMiddleware = asyncHandler(
     async (
@@ -27,10 +28,10 @@ export const requireAuthMiddleware = asyncHandler(
 
         const clearCookies = () => {
             res.clearCookie(COOKIES.session_id, {
-                secure: IS_PROD,
                 httpOnly: true,
-                sameSite: "lax",
                 maxAge: 0,
+                sameSite: "lax",
+                secure: env.isProd,
             });
         };
 

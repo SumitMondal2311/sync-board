@@ -1,4 +1,4 @@
-import { GetBoardsResponse } from "@repo/types";
+import { GetBoardsResponse } from "@repo/types/api";
 import { create } from "zustand";
 
 export const boardStore = create<{

@@ -1,11 +1,12 @@
-import { COOKIES, GetActiveSessionsResponse, GetSessionResponse } from "@repo/types";
+import { GetActiveSessionsResponse, GetSessionResponse } from "@repo/types/api";
+import { COOKIES } from "@repo/types/constants";
 import { Response } from "express";
 
-import { IS_PROD } from "../../configs/constants.js";
-import { APIError } from "../../helpers/api-error.js";
-import { asyncHandler } from "../../helpers/async-handler.js";
-import { RequireAuthRequest } from "../../types/custom-request.js";
-import { sessionService } from "./session.service.js";
+import { env } from "@/configs/env";
+import { APIError } from "@/helpers/api-error";
+import { asyncHandler } from "@/helpers/async-handler";
+import { RequireAuthRequest } from "@/types/custom-request";
+import { sessionService } from "./session.service";
 
 export const sessionController = {
     // ----------------------------------------
@@ -60,10 +61,10 @@ export const sessionController = {
             if (sessionId === req.session.id) {
                 return res
                     .clearCookie(COOKIES.session_id, {
-                        secure: IS_PROD,
                         httpOnly: true,
-                        sameSite: "lax",
                         maxAge: 0,
+                        sameSite: "lax",
+                        secure: env.isProd,
                     })
                     .json({ success: true });
             }

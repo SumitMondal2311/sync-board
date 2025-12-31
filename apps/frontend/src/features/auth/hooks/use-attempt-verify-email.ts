@@ -1,4 +1,4 @@
-import { VerifyEmailSchema } from "@repo/types";
+import { VerifyEmailSchema } from "@repo/types/api";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";

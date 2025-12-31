@@ -3,6 +3,7 @@ import { Geist_Mono, Outfit } from "next/font/google";
 import * as React from "react";
 
 import { Toaster } from "@/components/ui/sonner";
+import { loadEnv } from "@/configs/load-env";
 import QueryProvider from "@/providers/query-provider";
 import "@/styles/global.css";
 
@@ -17,6 +18,8 @@ const outfit = Outfit({
     display: "swap",
     subsets: ["latin"],
 });
+
+loadEnv();
 
 export default function Layout({
     children,

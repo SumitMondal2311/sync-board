@@ -1,10 +1,11 @@
-import { CreateListResponse, CreateListSchema, GetListsResponse, QUERY_PARAMS } from "@repo/types";
+import { CreateListResponse, CreateListSchema, GetListsResponse } from "@repo/types/api";
+import { QUERY_PARAMS } from "@repo/types/constants";
 import { createListSchema } from "@repo/validation";
 import { Response } from "express";
 
-import { APIError } from "../../helpers/api-error.js";
-import { asyncHandler } from "../../helpers/async-handler.js";
-import { RequireAuthRequest, RequireWorkspaceRequest } from "../../types/custom-request.js";
+import { APIError } from "@/helpers/api-error.js";
+import { asyncHandler } from "@/helpers/async-handler.js";
+import { RequireAuthRequest, RequireWorkspaceRequest } from "@/types/custom-request.js";
 import { listService } from "./list.service.js";
 
 export const listController = {

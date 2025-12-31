@@ -1,10 +1,11 @@
-import { CreateTaskSchema, QUERY_PARAMS } from "@repo/types";
+import { CreateTaskSchema } from "@repo/types/api";
+import { QUERY_PARAMS } from "@repo/types/constants";
 import { createTaskSchema } from "@repo/validation";
 
-import { APIError } from "../../helpers/api-error.js";
-import { asyncHandler } from "../../helpers/async-handler.js";
-import { RequireAuthRequest, RequireWorkspaceRequest } from "../../types/custom-request.js";
-import { taskService } from "./task.service.js";
+import { APIError } from "@/helpers/api-error";
+import { asyncHandler } from "@/helpers/async-handler";
+import { RequireAuthRequest, RequireWorkspaceRequest } from "@/types/custom-request";
+import { taskService } from "./task.service";
 
 export const taskController = {
     create: asyncHandler(

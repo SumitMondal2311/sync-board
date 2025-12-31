@@ -1,40 +1,52 @@
 {
     "$schema": "https://turborepo.com/schema.json",
+    "ui": "tui",
     "globalEnv": ["NODE_ENV"],
     "tasks": {
-        "build": {
-            "dependsOn": ["^build"]
-        },
-        "frontend#build": {
-            "env": ["NEXT_PUBLIC_BASE_URL"],
-            "outputs": [".next/**", "!.next/cache/**"]
+        "dev": {
+            "dependsOn": ["^db:generate", "^dev"],
+            "cache": false
         },
         "backend#build": {
+            "dependsOn": ["^db:generate"],
             "env": ["PORT", "DATABASE_URL"],
             "outputs": ["dist/**"]
         },
-        "@repo/database#build": {
-            "outputs": ["dist/**"]
+        "frontend#build": {
+            "dependsOn": ["^db:generate"],
+            "env": ["NEXT_PUBLIC_BASE_URL"],
+            "outputs": [".next/**", "!.next/cache/**"]
         },
-        "@repo/types#build": {
-            "outputs": ["dist/**"]
+        "start": {
+            "dependsOn": ["^backend#build", "^frontend#build", "^start"],
+            "cache": false
         },
-        "@repo/validation#build": {
-            "outputs": ["dist/**"]
+        "db:generate": {
+            "cache": false,
+            "outputs": ["generated/prisma/**"]
+        },
+        "db:push": {
+            "cache": false
+        },
+        "db:migrate": {
+            "cache": false,
+            "interactive": true
+        },
+        "db:deploy": {
+            "cache": false
+        },
+        "db:studio": {
+            "cache": false
+        },
+        "db:reset": {
+            "cache": false,
+            "interactive": true
         },
         "lint": {
             "dependsOn": ["^lint"]
         },
         "check-types": {
             "dependsOn": ["^check-types"]
-        },
-        "dev": {
-            "dependsOn": ["^dev"],
-            "cache": false
-        },
-        "start": {
-            "dependsOn": ["^start"],
-            "cache": false
         }
     }
 }

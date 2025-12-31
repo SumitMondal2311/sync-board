@@ -1,8 +1,8 @@
 import { v7 as uuidv7 } from "uuid";
 
 import { prisma } from "@repo/database";
-import { CreateListResponse, GetListsResponse } from "@repo/types";
-import { APIError } from "../../helpers/api-error.js";
+import { CreateListResponse, GetListsResponse } from "@repo/types/api";
+import { APIError } from "@/helpers/api-error.js";
 
 export const listService = {
     // ----------------------------------------

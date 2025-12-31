@@ -1,3 +1,5 @@
+// ----- Workspace Policy ----- //
+
 import { WorkspaceMemberRole } from "@repo/database";
 
 export class WorkspacePolicy {

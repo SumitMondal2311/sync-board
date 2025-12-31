@@ -1,4 +1,4 @@
-import { GetSessionResponse } from "@repo/types";
+import { GetSessionResponse } from "@repo/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
 

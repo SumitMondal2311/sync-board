@@ -1,7 +1,7 @@
 import { prisma } from "@repo/database";
 import { v7 as uuidv7 } from "uuid";
 
-import { APIError } from "../../helpers/api-error.js";
+import { APIError } from "@/helpers/api-error.js";
 
 export const taskService = {
     create: async ({

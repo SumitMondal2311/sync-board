@@ -1,8 +1,9 @@
-import { RequireAuthContext, WorkspacePolicy } from "@repo/types";
+import { GetSessionResponse } from "@repo/types/api";
+import { WorkspacePolicy } from "@repo/types/policies";
 import { Request } from "express";
 
 export type RequireAuthRequest = Request & {
-    session: RequireAuthContext;
+    session: GetSessionResponse;
 };
 
 export type RequireWorkspaceRequest = Request & {

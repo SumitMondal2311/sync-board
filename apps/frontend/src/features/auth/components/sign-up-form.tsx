@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SignUpSchema } from "@repo/types";
+import { SignUpSchema } from "@repo/types/api";
 import { signUpSchema } from "@repo/validation";
 import { Loader } from "lucide-react";
 import Link from "next/link";

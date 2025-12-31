@@ -4,17 +4,17 @@ import chalk from "chalk";
 import { v7 as uuidv7 } from "uuid";
 
 import {
-    IS_PROD,
     MAX_ACTIVE_SESSIONS,
     MAX_VERIFICATION_CODE_ATTEMPTS,
     SESSION_EXPIRY,
     VERIFICATION_CODE_EXPIRY,
-} from "../../configs/constants.js";
+} from "@/configs/constants.js";
 
-import { addSecondsToNow } from "../../helpers/add-seconds-to-now.js";
-import { APIError } from "../../helpers/api-error.js";
-import { generateOtp } from "../../helpers/generate-otp.js";
-import { generateToken } from "../../helpers/generate-token.js";
+import { env } from "@/configs/env";
+import { addSecondsToNow } from "@/helpers/add-seconds-to-now.js";
+import { APIError } from "@/helpers/api-error.js";
+import { generateOtp } from "@/helpers/generate-otp.js";
+import { generateToken } from "@/helpers/generate-token.js";
 
 export const authService = {
     // ----------------------------------------
@@ -69,7 +69,7 @@ export const authService = {
             select: { token: true },
         });
 
-        if (!IS_PROD) {
+        if (!env.isProd) {
             console.info(chalk.bgGreen(rawOtp));
         }
 

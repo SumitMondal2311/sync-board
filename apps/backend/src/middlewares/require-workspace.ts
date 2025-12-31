@@ -1,9 +1,10 @@
 import { prisma } from "@repo/database";
-import { HEADERS, WorkspacePolicy } from "@repo/types";
+import { HEADERS } from "@repo/types/constants";
+import { WorkspacePolicy } from "@repo/types/policies";
 
-import { APIError } from "../helpers/api-error.js";
-import { asyncHandler } from "../helpers/async-handler.js";
-import { RequireAuthRequest, RequireWorkspaceRequest } from "../types/custom-request.js";
+import { APIError } from "@/helpers/api-error.js";
+import { asyncHandler } from "@/helpers/async-handler.js";
+import { RequireAuthRequest, RequireWorkspaceRequest } from "@/types/custom-request.js";
 
 export const requireWorkspaceMiddleware = asyncHandler(
     async (

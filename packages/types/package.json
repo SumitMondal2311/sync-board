@@ -3,10 +3,20 @@
     "private": true,
     "type": "module",
     "exports": {
-        ".": "./dist/index.js"
+        "./api": {
+            "types": "./src/api.ts",
+            "default": "./src/api.ts"
+        },
+        "./constants": {
+            "types": "./src/constants.ts",
+            "default": "./src/constants.ts"
+        },
+        "./policies": {
+            "types": "./src/policies.ts",
+            "default": "./src/policies.ts"
+        }
     },
     "scripts": {
-        "build": "tsc",
         "check-types": "tsc --noEmit",
         "lint": "eslint src --ext .ts"
     },

@@ -4,5 +4,6 @@
     "type": "module",
     "exports": {
         ".": "./index.json"
-    }
+    },
+    "main": "./index.json"
 }

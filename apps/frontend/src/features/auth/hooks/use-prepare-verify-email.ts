@@ -1,4 +1,4 @@
-import { PrepareVerifyEmailResponse } from "@repo/types";
+import { PrepareVerifyEmailResponse } from "@repo/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
 

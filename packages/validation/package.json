@@ -3,10 +3,11 @@
     "private": true,
     "type": "module",
     "exports": {
-        ".": "./dist/index.js"
+        ".": "./src/index.ts"
     },
+    "main": "./src/index.ts",
+    "types": "./src/index.ts",
     "scripts": {
-        "build": "tsc",
         "check-types": "tsc --noEmit",
         "lint": "eslint src --ext .ts"
     },

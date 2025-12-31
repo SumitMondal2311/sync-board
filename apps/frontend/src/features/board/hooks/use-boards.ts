@@ -1,4 +1,4 @@
-import { GetBoardsResponse } from "@repo/types";
+import { GetBoardsResponse } from "@repo/types/api";
 import { useQuery } from "@tanstack/react-query";
 
 import { apiClient } from "@/lib/api-client";
