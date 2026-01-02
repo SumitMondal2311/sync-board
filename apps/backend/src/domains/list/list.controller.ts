@@ -1,5 +1,4 @@
-import { CreateListResponse, CreateListSchema, GetListsResponse } from "@repo/types/api";
-import { QUERY_PARAMS } from "@repo/types/constants";
+import { CreateListResponse, CreateListSchema, GetListsResponse, QUERY_PARAMS } from "@repo/types";
 import { createListSchema } from "@repo/validation";
 import { Response } from "express";
 

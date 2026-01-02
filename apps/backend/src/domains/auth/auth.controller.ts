@@ -1,11 +1,11 @@
 import {
+    COOKIES,
     PrepareVerifyEmailResponse,
     SignInSchema,
     SignUpSchema,
     VerifyEmailSchema,
-} from "@repo/types/api";
+} from "@repo/types";
 
-import { COOKIES } from "@repo/types/constants";
 import { signInSchema, signUpSchema, verifyEmailSchema } from "@repo/validation";
 import { Request, Response } from "express";
 
@@ -120,10 +120,9 @@ export const authController = {
                 userAgent: req.headers["user-agent"] ?? "unknown",
             });
 
-            res.cookie(COOKIES.sign_up_attempt_token, "", {
-                httpOnly: true,
-                maxAge: 0,
+            res.clearCookie(COOKIES.sign_up_attempt_token, {
                 sameSite: "lax",
+                httpOnly: true,
                 secure: env.isProd,
             })
                 .cookie(COOKIES.session_id, sessionId, {

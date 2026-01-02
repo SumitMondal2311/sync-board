@@ -1,4 +1,4 @@
-import { SignUpSchema } from "@repo/types/api";
+import { SignUpSchema } from "@repo/types";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 

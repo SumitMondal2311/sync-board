@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { VerifyEmailSchema } from "@repo/types/api";
+import { VerifyEmailSchema } from "@repo/types";
 import { verifyEmailSchema } from "@repo/validation";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { Loader } from "lucide-react";

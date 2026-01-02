@@ -1,5 +1,4 @@
-import { GetActiveSessionsResponse, GetSessionResponse } from "@repo/types/api";
-import { COOKIES } from "@repo/types/constants";
+import { COOKIES, GetActiveSessionsResponse, GetSessionResponse } from "@repo/types";
 import { Response } from "express";
 
 import { env } from "@/configs/env";
@@ -61,9 +60,8 @@ export const sessionController = {
             if (sessionId === req.session.id) {
                 return res
                     .clearCookie(COOKIES.session_id, {
-                        httpOnly: true,
-                        maxAge: 0,
                         sameSite: "lax",
+                        httpOnly: true,
                         secure: env.isProd,
                     })
                     .json({ success: true });

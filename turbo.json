@@ -7,15 +7,22 @@
             "dependsOn": ["^db:generate", "^dev"],
             "cache": false
         },
+        "backend": {
+            "env": ["PORT", "DATABASE_URL"]
+        },
         "backend#build": {
             "dependsOn": ["^db:generate"],
-            "env": ["PORT", "DATABASE_URL"],
             "outputs": ["dist/**"]
+        },
+        "frontend": {
+            "env": ["NEXT_PUBLIC_BASE_URL"]
         },
         "frontend#build": {
             "dependsOn": ["^db:generate"],
-            "env": ["NEXT_PUBLIC_BASE_URL"],
             "outputs": [".next/**", "!.next/cache/**"]
+        },
+        "@repo/database": {
+            "env": ["DATABASE_URL"]
         },
         "start": {
             "dependsOn": ["^backend#build", "^frontend#build", "^start"],

@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-import { COOKIES } from "@repo/types/constants";
+import { COOKIES } from "@repo/types";
 
 import { SESSION_EXPIRY } from "@/configs/constants";
 import { env } from "@/configs/env";
@@ -28,9 +28,8 @@ export const requireAuthMiddleware = asyncHandler(
 
         const clearCookies = () => {
             res.clearCookie(COOKIES.session_id, {
-                httpOnly: true,
-                maxAge: 0,
                 sameSite: "lax",
+                httpOnly: true,
                 secure: env.isProd,
             });
         };

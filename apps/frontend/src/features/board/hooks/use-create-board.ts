@@ -1,4 +1,4 @@
-import { CreateBoardResponse, CreateBoardSchema } from "@repo/types/api";
+import { CreateBoardResponse, CreateBoardSchema } from "@repo/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError, AxiosResponse } from "axios";
 import { useRouter } from "next/navigation";

@@ -1,7 +1,7 @@
+import { prisma } from "@repo/database";
+import { CreateListResponse, GetListsResponse } from "@repo/types";
 import { v7 as uuidv7 } from "uuid";
 
-import { prisma } from "@repo/database";
-import { CreateListResponse, GetListsResponse } from "@repo/types/api";
 import { APIError } from "@/helpers/api-error.js";
 
 export const listService = {
@@ -112,19 +112,19 @@ export const listService = {
         });
 
         return {
-            lists: lists.map((listRecord) => ({
-                title: listRecord.title,
-                id: listRecord.id,
-                position: listRecord.position,
-                tasks: listRecord.tasks.map(
-                    (taskRecord) =>
+            lists: lists.map((list) => ({
+                title: list.title,
+                id: list.id,
+                position: list.position,
+                tasks: list.tasks.map(
+                    (task) =>
                         ({
-                            position: taskRecord.position,
-                            dueDate: taskRecord.dueDate,
-                            id: taskRecord.id,
-                            title: taskRecord.title,
-                            assignee: taskRecord.assignee,
-                            commentsCount: taskRecord._count.comments,
+                            position: task.position,
+                            dueDate: task.dueDate,
+                            id: task.id,
+                            title: task.title,
+                            assignee: task.assignee,
+                            commentsCount: task._count.comments,
                         }) satisfies GetListsResponse[number]["tasks"][number]
                 ),
             })),

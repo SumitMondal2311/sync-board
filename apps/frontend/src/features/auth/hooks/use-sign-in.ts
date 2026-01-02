@@ -1,4 +1,4 @@
-import { SignInSchema } from "@repo/types/api";
+import { SignInSchema } from "@repo/types";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";

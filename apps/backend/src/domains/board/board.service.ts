@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-import { CreateBoardResponse, GetBoardsResponse } from "@repo/types/api";
+import { CreateBoardResponse, GetBoardsResponse } from "@repo/types";
 import { v7 as uuidv7 } from "uuid";
 
 export const boardService = {

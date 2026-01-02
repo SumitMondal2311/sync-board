@@ -1,5 +1,4 @@
-import { CreateTaskSchema } from "@repo/types/api";
-import { QUERY_PARAMS } from "@repo/types/constants";
+import { CreateTaskSchema, QUERY_PARAMS } from "@repo/types";
 import { createTaskSchema } from "@repo/validation";
 
 import { APIError } from "@/helpers/api-error";

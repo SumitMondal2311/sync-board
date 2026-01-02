@@ -1,6 +1,5 @@
 import { prisma } from "@repo/database";
-import { HEADERS } from "@repo/types/constants";
-import { WorkspacePolicy } from "@repo/types/policies";
+import { HEADERS, WorkspacePolicy } from "@repo/types";
 
 import { APIError } from "@/helpers/api-error.js";
 import { asyncHandler } from "@/helpers/async-handler.js";

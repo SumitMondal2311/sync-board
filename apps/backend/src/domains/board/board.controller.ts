@@ -1,4 +1,4 @@
-import { CreateBoardResponse, CreateBoardSchema, GetBoardsResponse } from "@repo/types/api";
+import { CreateBoardResponse, CreateBoardSchema, GetBoardsResponse } from "@repo/types";
 import { createBoardSchema } from "@repo/validation";
 import { Response } from "express";
 

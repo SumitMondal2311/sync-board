@@ -81,19 +81,19 @@ export const authService = {
     // ----------------------------------------
 
     prepareVerifyEmail: async (token: string): Promise<{ email: string }> => {
-        const signUpAttemptRecord = await prisma.signUpAttempt.findUnique({
+        const signUpAttempt = await prisma.signUpAttempt.findUnique({
             where: { token },
             select: { email: true },
         });
 
-        if (!signUpAttemptRecord) {
+        if (!signUpAttempt) {
             throw new APIError(404, {
                 code: "resource_not_found",
                 message: "No sign up attempt was found.",
             });
         }
 
-        return { email: signUpAttemptRecord.email };
+        return { email: signUpAttempt.email };
     },
 
     // ----------------------------------------
@@ -111,7 +111,7 @@ export const authService = {
         ipAddress: string;
         userAgent: string;
     }): Promise<{ sessionId: string }> => {
-        const signUpAttemptRecord = await prisma.signUpAttempt.findUnique({
+        const signUpAttempt = await prisma.signUpAttempt.findUnique({
             where: { token },
             select: {
                 attempts: true,
@@ -124,7 +124,7 @@ export const authService = {
             },
         });
 
-        if (!signUpAttemptRecord) {
+        if (!signUpAttempt) {
             throw new APIError(404, {
                 code: "resource_not_found",
                 message: "No sign-up attempt was found.",
@@ -132,7 +132,7 @@ export const authService = {
         }
 
         const { firstName, lastName, email, passwordHash, verificationCodeHash, expiresAt } =
-            signUpAttemptRecord;
+            signUpAttempt;
         if (new Date() >= expiresAt) {
             throw new APIError(400, {
                 code: "resource_expired",
@@ -140,7 +140,7 @@ export const authService = {
             });
         }
 
-        if (signUpAttemptRecord.attempts >= MAX_VERIFICATION_CODE_ATTEMPTS) {
+        if (signUpAttempt.attempts >= MAX_VERIFICATION_CODE_ATTEMPTS) {
             throw new APIError(403, {
                 code: "too_many_attempts",
                 message: "Too many failed verification attempts.",
@@ -244,7 +244,7 @@ export const authService = {
             });
         }
 
-        const sessionRecords = await prisma.session.findMany({
+        const sessions = await prisma.session.findMany({
             where: {
                 expiresAt: { gt: new Date() },
                 userId: user.id,
@@ -253,9 +253,9 @@ export const authService = {
             select: { id: true },
         });
 
-        if (sessionRecords.length >= MAX_ACTIVE_SESSIONS) {
+        if (sessions.length >= MAX_ACTIVE_SESSIONS) {
             await prisma.session.deleteMany({
-                where: { id: sessionRecords[0].id },
+                where: { id: sessions[0].id },
             });
         }
 

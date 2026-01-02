@@ -3,19 +3,10 @@
     "private": true,
     "type": "module",
     "exports": {
-        "./api": {
-            "types": "./src/api.ts",
-            "default": "./src/api.ts"
-        },
-        "./constants": {
-            "types": "./src/constants.ts",
-            "default": "./src/constants.ts"
-        },
-        "./policies": {
-            "types": "./src/policies.ts",
-            "default": "./src/policies.ts"
-        }
+        ".": "./src/index.ts"
     },
+    "main": "./src/index.ts",
+    "types": "./src/index.ts",
     "scripts": {
         "check-types": "tsc --noEmit",
         "lint": "eslint src --ext .ts"
