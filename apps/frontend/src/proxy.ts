@@ -22,11 +22,11 @@ export default function proxy(request: NextRequest) {
 
     const isAuthenticated = request.cookies.get(COOKIES.session_id);
     if (isAuthenticated) {
-        if (AUTH_ROUTES.some((route) => route === pathname)) {
+        if (AUTH_ROUTES.some((route) => pathname.startsWith(route))) {
             return NextResponse.redirect(new URL("/dashboard/boards", request.url));
         }
     } else {
-        if (PROTECTED_ROUTES.some((route) => route === pathname)) {
+        if (PROTECTED_ROUTES.some((route) => pathname.startsWith(route))) {
             return NextResponse.redirect(new URL("/sign-in", request.url));
         }
     }

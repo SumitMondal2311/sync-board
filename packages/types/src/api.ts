@@ -80,3 +80,5 @@ export type GetTasksResponse = Array<
         comments: Array<Pick<Comment, "id" | "text" | "userId" | "createdAt">>;
     }
 >;
+
+export type CreateWorkspaceResponse = GetSessionResponse["user"]["workspaces"][number];

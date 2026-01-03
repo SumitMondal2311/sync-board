@@ -18,7 +18,7 @@ import { OAuthProviders } from "./oauth-providers";
 
 export const SignInForm = () => {
     const [isLoading, setIsLoading] = React.useState(false);
-    const { mutate: signIn, isPending, isError } = useSignIn();
+    const { mutate: signIn, isPending, isError, isSuccess } = useSignIn();
 
     const { handleSubmit, control, formState } = useForm<SignInSchema>({
         resolver: zodResolver(signInSchema),
@@ -30,11 +30,7 @@ export const SignInForm = () => {
     });
 
     React.useEffect(() => {
-        if (formState.isSubmitting || isPending) {
-            setIsLoading(true);
-        } else {
-            if (isError) setIsLoading(false);
-        }
+        setIsLoading(isPending || isSuccess);
     }, [formState, isPending, setIsLoading, isError]);
 
     const onSubmit = (formData: SignInSchema) => {

@@ -15,6 +15,7 @@ import { meRouter } from "@/domains/me/me.route";
 import { sessionRouter } from "@/domains/session/session.route";
 import { taskRouter } from "@/domains/task/task.route";
 import { APIError } from "@/helpers/api-error";
+import { workspaceRouter } from "./domains/workspace/workspace.route";
 
 const app: Express = express();
 
@@ -39,10 +40,11 @@ app.use((err: Error, _req: Request, _res: Response, next: NextFunction) => {
 // API endpoints
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/me/sessions", sessionRouter);
-app.use("/api/v1/me", meRouter);
 app.use("/api/v1/me/boards", boardRouter);
 app.use("/api/v1/me/lists", listRouter);
 app.use("/api/v1/me/tasks", taskRouter);
+app.use("/api/v1/me/workspaces", workspaceRouter);
+app.use("/api/v1/me", meRouter);
 
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     if (err instanceof APIError) {

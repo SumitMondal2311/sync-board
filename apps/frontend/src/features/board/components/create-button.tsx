@@ -19,6 +19,7 @@ import { useCreateBoard } from "../hooks/use-create-board";
 export const CreateBoardButton = () => {
     const [open, setOpen] = React.useState(false);
     const [title, setTitle] = React.useState("");
+
     const { mutate: createBoard, isPending, isSuccess } = useCreateBoard();
 
     React.useEffect(() => {

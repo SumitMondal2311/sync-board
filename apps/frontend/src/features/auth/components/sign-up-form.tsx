@@ -34,14 +34,8 @@ export const SignUpForm = () => {
     });
 
     React.useEffect(() => {
-        if (formState.isSubmitting || isPending) {
-            return setIsLoading(true);
-        } else {
-            if (isError) {
-                return setIsLoading(false);
-            }
-        }
-    }, [formState, isPending, setIsLoading, isError]);
+        return setIsLoading(isPending || isSuccess);
+    }, [isPending, isSuccess, setIsLoading, isError]);
 
     React.useEffect(() => {
         if (isSuccess) {

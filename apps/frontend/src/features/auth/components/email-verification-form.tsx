@@ -17,11 +17,28 @@ import { useAttemptVerifyEmail } from "../hooks/use-attempt-verify-email";
 import { usePrepareVerifyEmail } from "../hooks/use-prepare-verify-email";
 
 export const EmailVerificationForm = () => {
-    const prepareVerifyEmail = usePrepareVerifyEmail();
-    const attemptVerifyEmail = useAttemptVerifyEmail();
     const router = useRouter();
 
-    const { handleSubmit, control, formState, setFocus, reset } = useForm<VerifyEmailSchema>({
+    const {
+        isLoading: isPreparing,
+        isError: isPrepareError,
+        data: prepareData,
+    } = usePrepareVerifyEmail();
+
+    React.useEffect(() => {
+        if (isPrepareError) {
+            router.replace("/sign-up");
+        }
+    }, [isPrepareError, router]);
+
+    const {
+        mutate: attemptVerifyEmail,
+        isPending: isAttempting,
+        isError: isAttemptError,
+        isSuccess: isAttemptSuccess,
+    } = useAttemptVerifyEmail();
+
+    const { handleSubmit, control, setFocus, reset } = useForm<VerifyEmailSchema>({
         resolver: zodResolver(verifyEmailSchema),
         defaultValues: {
             code: "",
@@ -29,42 +46,31 @@ export const EmailVerificationForm = () => {
         mode: "onSubmit",
     });
 
+    const { code } = useWatch({ control });
     React.useEffect(() => {
-        if (prepareVerifyEmail.isError) {
-            router.replace("/sign-up");
-        }
-    }, [prepareVerifyEmail, router]);
-
-    React.useEffect(() => {
-        setFocus("code");
-    }, [setFocus]);
-
-    React.useEffect(() => {
-        if (attemptVerifyEmail.isError) {
+        if (isAttemptError) {
             reset({ code: "" });
         }
-    }, [attemptVerifyEmail, reset]);
-
-    const { code } = useWatch({ control });
+    }, [isAttemptError, reset]);
 
     const onSubmit = (data: VerifyEmailSchema) => {
-        attemptVerifyEmail.mutate(data);
+        attemptVerifyEmail(data);
     };
 
-    if (prepareVerifyEmail.isLoading || prepareVerifyEmail.isError) {
+    if (isPreparing || isPrepareError) {
         return null;
     }
 
     return (
         <Card className="relative w-full max-w-sm">
-            {formState.isSubmitting || attemptVerifyEmail.isPending ? (
+            {isAttempting || isAttemptSuccess ? (
                 <div className="bg-background/50 absolute inset-0 z-10 rounded-md" />
             ) : null}
             <CardHeader className="gap-0">
                 <CardTitle className="font-mono text-2xl">Verify your email</CardTitle>
                 <CardDescription>
                     If you don&apos;t have an account yet, we&apos;ve sent a code to{" "}
-                    {prepareVerifyEmail.data?.data.maskedEmail}. Enter it below.
+                    {prepareData?.data.maskedEmail}. Enter it below.
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -75,7 +81,12 @@ export const EmailVerificationForm = () => {
                             control={control}
                             render={({ field, fieldState }) => (
                                 <Field>
-                                    <InputOTP maxLength={6} pattern={REGEXP_ONLY_DIGITS} {...field}>
+                                    <InputOTP
+                                        maxLength={6}
+                                        pattern={REGEXP_ONLY_DIGITS}
+                                        autoFocus
+                                        {...field}
+                                    >
                                         <InputOTPGroup className="w-full justify-evenly">
                                             {Array.from({ length: 6 }, (_, idx) => (
                                                 <InputOTPSlot
@@ -97,7 +108,7 @@ export const EmailVerificationForm = () => {
                         />
                         <div className="grid gap-6">
                             <Button disabled={code?.length !== 6} type="submit">
-                                {formState.isSubmitting || attemptVerifyEmail.isPending ? (
+                                {isAttempting || isAttemptSuccess ? (
                                     <Loader className="animate-spin" />
                                 ) : null}
                                 Continue

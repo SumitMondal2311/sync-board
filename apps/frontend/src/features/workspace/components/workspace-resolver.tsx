@@ -7,11 +7,20 @@ import { useSession } from "@/hooks/api/use-session";
 import { workspaceStore } from "@/stores/workspace.store";
 
 export const WorkspaceResolver = ({ children }: { children: React.ReactNode }) => {
+    const [mounted, setMounted] = React.useState(false);
     const { data: session } = useSession();
     const { setActiveWorkspace } = workspaceStore();
+    const activeWorkspaceId = workspaceStore((st) => st.activeWorkspace?.id);
     const router = useRouter();
 
     const workspaces = session?.data.user.workspaces;
+
+    React.useEffect(() => {
+        setTimeout(() => {
+            setMounted(true);
+        }, 250);
+    }, [setMounted]);
+
     React.useEffect(() => {
         if (!workspaces) return;
         const storedWorkspaceId = localStorage.getItem("active-workspace-id");
@@ -31,7 +40,7 @@ export const WorkspaceResolver = ({ children }: { children: React.ReactNode }) =
         setActiveWorkspace(resolvedWorkspace);
     }, [workspaces, router, setActiveWorkspace]);
 
-    if (!workspaces) {
+    if (!workspaces || !mounted || !activeWorkspaceId) {
         return null;
     }
 
