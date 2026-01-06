@@ -1,6 +1,6 @@
 "use client";
 
-import { Building, ChevronsUpDown, Plus } from "lucide-react";
+import { Building, ChevronsUpDown } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -12,11 +12,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
+import { CreateWorkspaceButton } from "@/features/workspace/components/create-button";
 import { useSession } from "@/hooks/api/use-session";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { workspaceStore } from "@/stores/workspace.store";
+import { useState } from "react";
 
 export const WorkspaceSwitcher = () => {
+    const [openDropdown, setOpenDropdown] = useState(false);
     const { data: session } = useSession();
     const activeWorkspace = workspaceStore((st) => st.activeWorkspace);
     const { setActiveWorkspace } = workspaceStore();
@@ -41,9 +44,10 @@ export const WorkspaceSwitcher = () => {
     return (
         <SidebarMenu>
             <SidebarMenuItem>
-                <DropdownMenu>
+                <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
+                            onSelect={(e) => e.preventDefault()}
                             size="lg"
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         >
@@ -73,12 +77,7 @@ export const WorkspaceSwitcher = () => {
                             </DropdownMenuItem>
                         ))}
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="gap-2 p-2">
-                            <div className="grid aspect-square h-8 place-items-center rounded-md border">
-                                <Plus />
-                            </div>
-                            <div className="text-muted-foreground">Add workspace</div>
-                        </DropdownMenuItem>
+                        <CreateWorkspaceButton setOpenDropdown={setOpenDropdown} />
                     </DropdownMenuContent>
                 </DropdownMenu>
             </SidebarMenuItem>

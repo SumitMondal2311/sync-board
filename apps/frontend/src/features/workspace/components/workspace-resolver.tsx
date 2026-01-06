@@ -7,40 +7,38 @@ import { useSession } from "@/hooks/api/use-session";
 import { workspaceStore } from "@/stores/workspace.store";
 
 export const WorkspaceResolver = ({ children }: { children: React.ReactNode }) => {
-    const [mounted, setMounted] = React.useState(false);
+    const [resolved, setResolved] = React.useState(false);
     const { data: session } = useSession();
     const { setActiveWorkspace } = workspaceStore();
     const activeWorkspaceId = workspaceStore((st) => st.activeWorkspace?.id);
     const router = useRouter();
 
-    const workspaces = session?.data.user.workspaces;
-
     React.useEffect(() => {
-        setTimeout(() => {
-            setMounted(true);
-        }, 250);
-    }, [setMounted]);
+        if (!session) return;
 
-    React.useEffect(() => {
-        if (!workspaces) return;
-        const storedWorkspaceId = localStorage.getItem("active-workspace-id");
+        const { workspaces } = session.data.user;
         if (workspaces.length === 1) {
             localStorage.setItem("active-workspace-id", workspaces[0].id);
             setActiveWorkspace(workspaces.find((ws) => ws.id === workspaces[0].id) ?? null);
+            setResolved(true);
             return;
         }
 
-        const resolvedWorkspace = workspaces?.find((ws) => ws.id === storedWorkspaceId);
-        if (!storedWorkspaceId || !resolvedWorkspace) {
+        const resolvedWorkspace = workspaces.find(
+            (ws) => ws.id === (localStorage.getItem("active-workspace-id") ?? "")
+        );
+
+        if (!resolvedWorkspace) {
             localStorage.removeItem("active-workspace-id");
             router.replace("/select-workspace");
             return;
         }
 
         setActiveWorkspace(resolvedWorkspace);
-    }, [workspaces, router, setActiveWorkspace]);
+        setResolved(true);
+    }, [session, setActiveWorkspace, router]);
 
-    if (!workspaces || !mounted || !activeWorkspaceId) {
+    if (!resolved || !session || !activeWorkspaceId) {
         return null;
     }
 

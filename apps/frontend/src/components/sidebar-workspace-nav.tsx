@@ -24,8 +24,8 @@ const WORKSPACE_NAV_ITEMS: {
     },
     {
         icon: Users,
-        url: "/dashboard/members",
-        label: "Members",
+        url: "/dashboard/team",
+        label: "Team",
     },
     {
         icon: ReceiptText,

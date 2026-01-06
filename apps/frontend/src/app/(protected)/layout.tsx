@@ -1,7 +1,7 @@
 import * as React from "react";
 
-import { WorkspaceResolver } from "@/features/workspace/components/workspace-resolver";
+import { AuthGuard } from "@/features/auth/components/guard";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-    return <WorkspaceResolver>{children}</WorkspaceResolver>;
+    return <AuthGuard>{children}</AuthGuard>;
 }
